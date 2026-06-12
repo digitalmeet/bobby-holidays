@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 460" role="img" aria-label="Dubai skyline">
+  <rect width="700" height="460" fill="#ffd28a"/>
+  <circle cx="562" cy="88" r="48" fill="#fff3b6"/>
+  <path d="M0 354h700v106H0Z" fill="#d99d58"/>
+  <path d="M110 190h62v164h-62Zm96-70h46v234h-46Zm84 34h72v200h-72Zm118-96h34v296h-34Zm90 148h78v148h-78Z" fill="#10202f" opacity=".88"/>
+  <path d="M425 58l-17 88h34Z" fill="#10202f" opacity=".88"/>
+</svg>

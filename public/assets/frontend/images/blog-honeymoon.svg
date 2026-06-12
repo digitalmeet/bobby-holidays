@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 460" role="img" aria-label="Honeymoon beach">
+  <rect width="700" height="460" fill="#ffc3ad"/>
+  <circle cx="534" cy="96" r="54" fill="#fff1a8"/>
+  <path d="M0 260c150-70 272-58 392-10 112 45 204 48 308 0v210H0Z" fill="#0e7490"/>
+  <path d="M0 336c158-20 292-12 444 20 88 18 172 20 256 8v96H0Z" fill="#f5c982"/>
+  <path d="M292 246c-42-54-116-26-104 42 10 56 104 96 104 96s94-40 104-96c12-68-62-96-104-42Z" fill="#f05a28"/>
+</svg>

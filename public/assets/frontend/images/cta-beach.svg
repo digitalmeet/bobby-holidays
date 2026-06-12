@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520" role="img" aria-label="Beach travel call to action">
+  <rect width="1600" height="520" fill="#0e7490"/>
+  <circle cx="1230" cy="135" r="78" fill="#ffd167"/>
+  <path d="M0 286c186-84 334-70 506 0 232 94 446 94 686-3 162-65 290-82 408-54v291H0Z" fill="#33b8c3"/>
+  <path d="M0 375c280-64 506-48 780 22 240 62 482 56 820-30v153H0Z" fill="#f5cf93"/>
+  <path d="M1060 520c58-134 78-254 52-358" stroke="#7b4b25" stroke-width="30" stroke-linecap="round"/>
+  <path d="M1020 224c94-74 188-94 288-62-74 72-166 98-288 62Z" fill="#185a55"/>
+  <path d="M1095 202c-8-99 26-178 101-238 35 100 8 180-101 238Z" fill="#24756b"/>
+</svg>

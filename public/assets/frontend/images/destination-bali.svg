@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 460" role="img" aria-label="Bali temple">
+  <rect width="700" height="460" fill="#7dccdc"/>
+  <path d="M0 286c120-54 228-50 350 0 136 56 240 56 350 0v174H0Z" fill="#1c9aa7"/>
+  <path d="M0 356c176-24 302-14 438 22 88 23 176 26 262 11v71H0Z" fill="#f4c984"/>
+  <path d="M265 232h170v128H265Z" fill="#6b3e22"/>
+  <path d="m246 232 104-100 104 100Z" fill="#10202f"/>
+  <path d="m290 166 60-70 60 70Z" fill="#10202f"/>
+</svg>

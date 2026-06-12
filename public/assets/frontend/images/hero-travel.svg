@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Tropical holiday landscape">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#58b9d9"/>
+      <stop offset="0.52" stop-color="#ffd27d"/>
+      <stop offset="1" stop-color="#f06d3a"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0e7490"/>
+      <stop offset="1" stop-color="#35c0c7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="1175" cy="220" r="92" fill="#fff1a8" opacity=".9"/>
+  <path d="M0 470c180-95 294-74 440-10 208 92 342 92 560 2 230-95 404-86 600 4v434H0Z" fill="url(#sea)"/>
+  <path d="M0 620c310-74 496-54 760 16 256 68 500 50 840-46v310H0Z" fill="#f6d6a2"/>
+  <path d="M0 690c346-52 620-34 900 30 248 57 459 62 700 20v160H0Z" fill="#f7c981"/>
+  <path d="M1000 650c130-170 236-270 392-318 20 150-36 288-158 414Z" fill="#185a55"/>
+  <path d="M1176 646c-12-144 20-274 112-412 96 124 122 250 77 378Z" fill="#24756b"/>
+  <path d="M1285 648c48-122 126-219 258-288 6 132-58 240-186 326Z" fill="#1f6d65"/>
+  <path d="M1130 900c66-194 94-391 82-585" stroke="#7b4b25" stroke-width="34" stroke-linecap="round"/>
+  <path d="M520 492l158-136 194 176H406Z" fill="#fff" opacity=".9"/>
+  <path d="M650 404h72v128h-72Z" fill="#f05a28"/>
+  <path d="M362 575h566" stroke="#fff" stroke-width="16" stroke-linecap="round" opacity=".68"/>
+</svg>

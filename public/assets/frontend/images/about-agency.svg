@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 680" role="img" aria-label="Travel agency planning holidays">
+  <rect width="720" height="680" fill="#f6f8fb"/>
+  <rect x="58" y="72" width="604" height="438" rx="18" fill="#ffffff"/>
+  <path d="M98 172h524v252H98Z" fill="#9ed7ef"/>
+  <path d="M98 362c118-58 226-56 340 0 70 34 132 44 184 30v32H98Z" fill="#0e7490"/>
+  <path d="M98 414h524v10H98Z" fill="#f5c982"/>
+  <circle cx="510" cy="226" r="46" fill="#ffd167"/>
+  <rect x="134" y="548" width="168" height="54" rx="10" fill="#f05a28"/>
+  <rect x="326" y="548" width="260" height="54" rx="10" fill="#10202f"/>
+  <path d="M166 142h388" stroke="#e6e9ef" stroke-width="18" stroke-linecap="round"/>
+</svg>

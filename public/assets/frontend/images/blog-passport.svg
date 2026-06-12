@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 460" role="img" aria-label="Passport and travel visa">
+  <rect width="700" height="460" fill="#ffe3c4"/>
+  <rect x="130" y="86" width="236" height="310" rx="18" fill="#0e7490"/>
+  <rect x="334" y="118" width="236" height="260" rx="18" fill="#fff"/>
+  <circle cx="248" cy="226" r="62" fill="#fff" opacity=".82"/>
+  <path d="M394 188h120M394 236h104M394 284h132" stroke="#e6e9ef" stroke-width="18" stroke-linecap="round"/>
+</svg>

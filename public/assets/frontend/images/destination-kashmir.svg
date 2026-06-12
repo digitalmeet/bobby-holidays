@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 460" role="img" aria-label="Kashmir mountains">
+  <rect width="700" height="460" fill="#9ed7ef"/>
+  <path d="M0 292 138 136l110 106L362 82l186 210 80-72 72 72v168H0Z" fill="#f8fbff"/>
+  <path d="M0 344c128-32 246-30 356 7 128 43 244 42 344-3v112H0Z" fill="#0e7490" opacity=".75"/>
+  <path d="M0 390h700v70H0Z" fill="#dbeef4"/>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 460" role="img" aria-label="Goa beach">
+  <rect width="700" height="460" fill="#7dccdc"/>
+  <circle cx="540" cy="95" r="54" fill="#ffd167"/>
+  <path d="M0 260c132-70 244-62 356-16 130 53 226 57 344 8v208H0Z" fill="#0e7490"/>
+  <path d="M0 332c160-28 300-20 458 18 88 21 168 26 242 16v94H0Z" fill="#f5c982"/>
+  <path d="M140 362c42-94 56-174 45-246" stroke="#7b4b25" stroke-width="18" stroke-linecap="round"/>
+  <path d="M112 156c72-46 136-56 196-28-50 48-116 58-196 28Z" fill="#185a55"/>
+</svg>
