@@ -1,6 +1,6 @@
 <article class="destination-card">
-    <a href="{{ asset($image) }}" class="glightbox" data-gallery="destinations">
-        <img src="{{ asset($image) }}" alt="{{ $title }}">
+    <a href="{{ str_starts_with($image, 'http') || str_starts_with($image, '/storage') ? $image : asset($image) }}" class="glightbox" data-gallery="destinations">
+        <img src="{{ str_starts_with($image, 'http') || str_starts_with($image, '/storage') ? $image : asset($image) }}" alt="{{ $title }}">
     </a>
     <div class="card-body-pad">
         <div class="destination-meta">

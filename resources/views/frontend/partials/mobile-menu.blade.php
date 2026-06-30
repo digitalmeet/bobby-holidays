@@ -21,11 +21,11 @@
     <ul class="mobile-nav">
         <li><a href="{{ route('frontend.home') }}">Home <i class="fa-solid fa-angle-right"></i></a></li>
         <li><a href="{{ route('frontend.about') }}">About Us <i class="fa-solid fa-angle-right"></i></a></li>
+        <li><a href="{{ route('frontend.destinations') }}">Destinations <i class="fa-solid fa-angle-right"></i></a></li>
         <li><a href="{{ route('frontend.domestic') }}">Domestic Packages <i class="fa-solid fa-angle-right"></i></a></li>
         <li><a href="{{ route('frontend.international') }}">International Packages <i class="fa-solid fa-angle-right"></i></a></li>
         <li><a href="{{ route('frontend.services') }}">Services <i class="fa-solid fa-angle-right"></i></a></li>
         <li><a href="{{ route('frontend.gallery') }}">Gallery <i class="fa-solid fa-angle-right"></i></a></li>
-        <li><a href="{{ route('frontend.faq') }}">FAQ <i class="fa-solid fa-angle-right"></i></a></li>
         <li><a href="{{ route('frontend.blog') }}">Blog <i class="fa-solid fa-angle-right"></i></a></li>
         <li><a href="{{ route('frontend.contact') }}">Contact Us <i class="fa-solid fa-angle-right"></i></a></li>
     </ul>

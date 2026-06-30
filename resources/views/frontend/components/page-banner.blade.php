@@ -1,15 +1,11 @@
-<section class="page-banner">
+<nav class="breadcrumb-strip" aria-label="breadcrumb">
     <div class="container">
-        <div class="row">
-            <div class="col-lg-8" data-aos="fade-up">
-                <h1>{{ $title }}</h1>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('frontend.home') }}">Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{ $title }}</li>
-                    </ol>
-                </nav>
-            </div>
-        </div>
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ route('frontend.home') }}">Home</a></li>
+            @if(!empty($subtitle))
+                <li class="breadcrumb-item">{{ $subtitle }}</li>
+            @endif
+            <li class="breadcrumb-item active" aria-current="page">{{ $title }}</li>
+        </ol>
     </div>
-</section>
+</nav>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UniWorld Holidays — Technical Documentation</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'JetBrains Mono','Fira Code',monospace;line-height:1.6;color:#1a1a1a;max-width:1000px;margin:0 auto;padding:40px 20px;font-size:14px}
+h1{color:#064f68;font-size:24px;margin-bottom:4px;font-family:system-ui}
+h2{color:#064f68;font-size:18px;margin:36px 0 12px;padding:8px 12px;background:#f0f4f8;border-left:4px solid #064f68;font-family:system-ui}
+h3{color:#333;font-size:15px;margin:20px 0 8px;font-family:system-ui}
+p{margin-bottom:10px;font-family:system-ui;font-size:14px}
+pre{background:#1e293b;color:#e2e8f0;padding:16px;border-radius:6px;overflow-x:auto;margin:12px 0;font-size:13px}
+code{background:#f0f4f8;padding:1px 5px;border-radius:3px;font-size:13px;color:#064f68}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th,td{border:1px solid #e5e7eb;padding:8px 10px;text-align:left}
+th{background:#064f68;color:#fff;font-weight:600}
+tr:nth-child(even){background:#f9fafb}
+.section{margin-bottom:40px}
+ul,ol{margin:0 0 12px 20px;font-family:system-ui;font-size:14px}
+li{margin-bottom:4px}
+.note{background:#fef3c7;border:1px solid #f59e0b;padding:10px 14px;border-radius:6px;margin:12px 0;font-family:system-ui}
+.arch{background:#f8fafb;border:1px solid #e5e7eb;padding:16px;border-radius:8px;margin:12px 0;font-family:monospace;font-size:12px;white-space:pre;overflow-x:auto}
+</style>
+</head>
+<body>
+
+<h1>UniWorld Holidays — Technical Documentation</h1>
+<p style="color:#666;margin-bottom:30px;font-family:system-ui">Architecture, Database, Patterns, Deployment | v1.0</p>
+
+<div class="section">
+<h2>1. Architecture Overview</h2>
+<div class="arch">
+┌─────────────────────────────────────────────────────────────┐
+│                        PUBLIC WEBSITE                         │
+│  Bootstrap 5 + jQuery + OwlCarousel + InstantClick           │
+│  Routes: FrontendController, ContactController               │
+│  Views: resources/views/frontend/*                           │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+┌──────────────────────────┼──────────────────────────────────┐
+│                     LARAVEL 13 CORE                           │
+│  Models (20) + Policies (17) + Observers (3) + Traits (1)    │
+│  Helpers: setting() | Mail: QuotationSent                    │
+│  Commands: ExpireQuotations, SendFollowUpReminders           │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+┌──────────────────────────┼──────────────────────────────────┐
+│                   FILAMENT 5 ADMIN PANEL                      │
+│  Resources (13) + Pages (5) + Widgets (4) + Exports (2)      │
+│  SPA Mode + Database Notifications + Global Search           │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+┌──────────────────────────┼──────────────────────────────────┐
+│                      MySQL 8.x                               │
+│  32 tables | Per-module activity logs | Soft deletes          │
+└─────────────────────────────────────────────────────────────┘
+</div>
+</div>
+
+<div class="section">
+<h2>2. Directory Structure</h2>
+<pre>
+app/
+├── Console/Commands/          # ExpireQuotations, SendFollowUpReminders
+├── Filament/
+│   ├── Exports/               # EnquiryExporter, BookingExporter
+│   ├── Pages/                 # Dashboard, SalesReport, RevenueReport, BookingsReport, ManageSettings
+│   ├── Resources/             # 13 resources (Bookings, Enquiries, Quotations, Tours, etc.)
+│   └── Widgets/               # StatsOverview, TodaysCallingList, RecentEnquiries, RecentPayments
+├── Http/Controllers/          # FrontendController, ContactController, QuotationController, RazorpayController
+├── Mail/                      # QuotationSent
+├── Models/                    # 22 models
+├── Observers/                 # EnquiryObserver, QuotationObserver, PaymentObserver
+├── Policies/                  # 17 policies + ChecksModulePermissions trait
+├── Providers/                 # AppServiceProvider, AuthServiceProvider, AdminPanelProvider
+└── Traits/                    # LogsActivity
+
+config/
+└── admin-modules.php          # Permission definitions (source of truth)
+
+database/
+├── migrations/                # 30 migration files
+└── seeders/                   # RolesAndPermissionsSeeder, AdminUserSeeder, DemoDataSeeder
+</pre>
+</div>
+
+<div class="section">
+<h2>3. Permission System</h2>
+<p>Permissions are generated from <code>config/admin-modules.php</code> in format: <code>{action}_{module}</code></p>
+<pre>
+// Example: config/admin-modules.php
+'enquiries' => [
+    'label' => 'Enquiries',
+    'actions' => [
+        'view' => 'View Enquiries',
+        'create' => 'Create Enquiries',
+        'edit' => 'Edit Enquiries',
+        'assign' => 'Assign Enquiries',
+        ...
+    ],
+],
+
+// Generated permissions: view_enquiries, create_enquiries, edit_enquiries, assign_enquiries
+// Checked in policies via: $this->canPerform($user, 'view', 'enquiries')
+// Super admin bypasses all via Gate::before()
+</pre>
+<p>Total: 102 permissions across 18 modules, 4 default roles.</p>
+</div>
+
+<div class="section">
+<h2>4. Activity Logging</h2>
+<p>Custom per-module tables (NOT spatie/activitylog). Each module has its own <code>{module}_logs</code> table.</p>
+<pre>
+// Tables: enquiry_logs, booking_logs, quotation_logs, tour_logs, page_logs
+// Schema: id, record_id, user_id, action, description, old_values (JSON), new_values (JSON), ip_address, created_at
+
+// Usage via trait:
+class Enquiry extends Model {
+    use LogsActivity; // Auto-logs create, update, delete
+}
+
+// Manual logging:
+ActivityLog::log($booking, 'status_changed', 'Cancelled by admin', ['status'=>'confirmed'], ['status'=>'cancelled']);
+
+// Querying:
+ActivityLog::getLogsFor($enquiry); // Returns collection from enquiry_logs table
+</pre>
+<div class="note">The ActivityLog model dynamically sets its table based on the model class. No polymorphic queries needed.</div>
+</div>
+
+<div class="section">
+<h2>5. Database Schema (Key Tables)</h2>
+
+<h3>enquiries</h3>
+<table>
+<tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+<tr><td>id</td><td>bigint PK</td><td></td></tr>
+<tr><td>tour_id</td><td>FK nullable</td><td>nullOnDelete</td></tr>
+<tr><td>destination_id</td><td>FK nullable</td><td>nullOnDelete</td></tr>
+<tr><td>name, phone, email</td><td>string</td><td>phone required</td></tr>
+<tr><td>status</td><td>string</td><td>new|contacted|quoted|converted|lost</td></tr>
+<tr><td>source</td><td>string</td><td>website|whatsapp|referral|walkin|instagram|facebook</td></tr>
+<tr><td>assigned_to</td><td>FK nullable</td><td>→ users, nullOnDelete</td></tr>
+<tr><td>follow_up_at</td><td>timestamp</td><td>Next follow-up date</td></tr>
+<tr><td>internal_notes</td><td>text</td><td>Staff-only notes</td></tr>
+</table>
+
+<h3>quotations</h3>
+<table>
+<tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+<tr><td>public_id</td><td>string(12) unique</td><td>Used in public URLs</td></tr>
+<tr><td>access_token</td><td>string(64) unique</td><td>Future secure links</td></tr>
+<tr><td>version</td><td>smallint</td><td>Revision number</td></tr>
+<tr><td>parent_quotation_id</td><td>FK self nullable</td><td>Links to previous version</td></tr>
+<tr><td>status</td><td>string</td><td>draft|sent|viewed|accepted|rejected|expired|revised</td></tr>
+<tr><td>total_amount</td><td>decimal(12,2)</td><td>Auto-calculated from items</td></tr>
+</table>
+
+<h3>bookings</h3>
+<table>
+<tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+<tr><td>booking_ref</td><td>string unique</td><td>Format: UW-YYYY-000001 (auto-generated)</td></tr>
+<tr><td>total_amount</td><td>decimal(12,2)</td><td>Package total</td></tr>
+<tr><td>paid_amount</td><td>decimal(12,2)</td><td>Auto-calculated from payments</td></tr>
+<tr><td>balance_amount</td><td>decimal(12,2)</td><td>total - paid</td></tr>
+<tr><td>status</td><td>string</td><td>confirmed|partial_paid|fully_paid|completed|cancelled|refunded</td></tr>
+</table>
+
+<h3>follow_ups</h3>
+<table>
+<tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+<tr><td>enquiry_id</td><td>FK</td><td>cascadeOnDelete</td></tr>
+<tr><td>type</td><td>string</td><td>call|whatsapp|email|meeting|note</td></tr>
+<tr><td>status</td><td>string</td><td>completed|no_answer|busy|rescheduled|callback</td></tr>
+<tr><td>scheduled_at</td><td>timestamp</td><td>When the call is scheduled</td></tr>
+<tr><td>completed_at</td><td>timestamp</td><td>When it was actually done</td></tr>
+<tr><td>next_follow_up_at</td><td>timestamp</td><td>Auto-creates next record</td></tr>
+</table>
+
+<h3>online_payments (Razorpay)</h3>
+<table>
+<tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+<tr><td>gateway</td><td>string</td><td>razorpay (extensible)</td></tr>
+<tr><td>order_id</td><td>string</td><td>Razorpay order ID</td></tr>
+<tr><td>payment_id</td><td>string unique</td><td>Razorpay payment ID</td></tr>
+<tr><td>signature</td><td>string</td><td>HMAC verification</td></tr>
+<tr><td>status</td><td>string</td><td>created|authorized|captured|failed|refunded</td></tr>
+<tr><td>gateway_response</td><td>JSON</td><td>Full API response stored</td></tr>
+</table>
+</div>
+
+<div class="section">
+<h2>6. Key Workflows (Code Flow)</h2>
+
+<h3>Contact Form → Enquiry</h3>
+<pre>
+POST /contact-us
+  → ContactController@submit
+  → Validates (name, phone required)
+  → Creates Enquiry (status=new, source=website)
+  → LogsActivity trait logs "created"
+  → EnquiryObserver fires → notifies sales+admin
+  → Checks repeat client → notifies if repeat
+  → Returns JSON (AJAX) or redirect (normal)
+</pre>
+
+<h3>Quotation Send → Email + Notification</h3>
+<pre>
+Admin clicks "Mark as Sent" on EditQuotation page
+  → Updates status to 'sent', sets sent_at
+  → Creates quotation_history record
+  → Sends QuotationSent mailable to client_email
+  → QuotationObserver fires (status changed to 'sent')
+</pre>
+
+<h3>Client Views Quotation</h3>
+<pre>
+GET /quote/{publicId}
+  → QuotationController@show
+  → Increments view_count
+  → If first view: sets viewed_at, changes status to 'viewed'
+  → Creates quotation_history (event: viewed)
+  → QuotationObserver fires → notifies prepared_by user
+</pre>
+
+<h3>Payment Recording → Balance Update</h3>
+<pre>
+Admin adds payment via PaymentsRelationManager
+  → Payment created (status=received)
+  → PaymentObserver fires → notifies admin
+  → updateBookingBalance() called:
+    → Sums all received payments
+    → Updates paid_amount, balance_amount
+    → If balance ≤ 0 → status = fully_paid
+    → If balance > 0 but paid > 0 → status = partial_paid
+    → Creates booking_status_history if status changed
+</pre>
+</div>
+
+<div class="section">
+<h2>7. Razorpay Integration</h2>
+<pre>
+Feature Flag: setting('razorpay_enabled') must be 'true'
+
+Flow:
+1. Client opens /pay/{publicId} → RazorpayController@paymentPage
+2. Clicks Pay → JS calls POST /pay/create-order
+3. Controller creates Razorpay order via API (curl)
+4. Stores in online_payments table (status: created)
+5. Returns order_id + key_id to frontend
+6. Razorpay Checkout.js opens payment modal
+7. On success → JS calls POST /pay/verify
+8. Controller verifies HMAC signature
+9. Updates online_payments (status: captured)
+10. If booking linked → creates Payment record → updates balance
+
+Security:
+- Signature: hash_hmac('sha256', order_id|payment_id, key_secret)
+- Keys stored in settings table (not .env)
+- All responses logged in gateway_response JSON column
+</pre>
+</div>
+
+<div class="section">
+<h2>8. Frontend Performance</h2>
+<pre>
+Optimizations applied:
+- InstantClick.js (prefetch on hover → instant navigation)
+- CSS: flatpickr, glightbox loaded with media="print" onload (non-blocking)
+- JS: flatpickr, glightbox loaded with defer attribute
+- Removed: AOS.js, Select2 from global load
+- Google Analytics: conditional (only if setting exists)
+- Images: lazy loading via browser native
+- Fonts: preconnect + single font family (Inter)
+</pre>
+</div>
+
+<div class="section">
+<h2>9. SEO Implementation</h2>
+<pre>
+Every page gets (from layout):
+- &lt;title&gt; from @yield('title') or setting('seo_title')
+- &lt;meta description&gt; from @yield('meta_description') or setting('seo_description')
+- &lt;link rel="canonical"&gt; = current URL
+- Open Graph: og:type, og:title, og:description, og:url, og:site_name
+- Twitter Card: summary_large_image
+- JSON-LD: TravelAgency schema (name, phone, email, address)
+
+Per-page (admin-editable fields):
+- Tours: meta_title, meta_description, og_image
+- Destinations: meta_title, meta_description, og_image
+- Posts: meta_title, meta_description, featured_image (as og:image)
+- Pages: meta_title, meta_description, og_image
+</pre>
+</div>
+
+<div class="section">
+<h2>10. Deployment Checklist</h2>
+<pre>
+1. Set APP_ENV=production, APP_DEBUG=false in .env
+2. Configure MySQL credentials
+3. php artisan migrate --force
+4. php artisan db:seed --class=RolesAndPermissionsSeeder
+5. php artisan db:seed --class=AdminUserSeeder
+6. php artisan storage:link
+7. php artisan config:cache
+8. php artisan route:cache
+9. php artisan event:cache
+10. php artisan view:cache
+11. php artisan filament:optimize
+12. Set cron: * * * * * php artisan schedule:run
+13. Configure SMTP in .env for email sending
+14. Update Site Settings in admin (company details, Razorpay keys if needed)
+15. Change default admin password
+</pre>
+</div>
+
+<div class="section">
+<h2>11. Known Gotchas</h2>
+<ul>
+<li><code>TourPricing</code> model has <code>protected $table = 'tour_pricing'</code> (non-standard plural)</li>
+<li>Blade: Never use <code>@context</code> or <code>@type</code> in templates — use <code>@@context</code> (escape for JSON-LD)</li>
+<li>Blade: Never wrap <code>@section</code> inside <code>@if</code> on same line</li>
+<li>Filament 5: <code>Tables\Actions\Action</code> namespace does NOT exist — use <code>Filament\Actions\Action</code></li>
+<li>Filament 5: Layout components (Section, Tabs) are in <code>Filament\Schemas\Components\*</code></li>
+<li>Filament 5: <code>ChartWidget::$heading</code> is non-static, <code>TableWidget::$heading</code> is static</li>
+<li>DemoDataSeeder must NOT use <code>WithoutModelEvents</code> trait (breaks HasSlug auto-generation)</li>
+<li>Migration order matters for FK constraints — bookings before payments before payment_histories</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>12. Remaining Features (Not Built)</h2>
+<table>
+<tr><th>Feature</th><th>Effort</th><th>Notes</th></tr>
+<tr><td>Tour cost templates (reusable item sets)</td><td>3h</td><td>New model + insert action on quotation</td></tr>
+<tr><td>Booking voucher/itinerary PDF</td><td>3h</td><td>Similar to quotation PDF</td></tr>
+<tr><td>Calendar view for follow-ups</td><td>3h</td><td>FullCalendar.js widget</td></tr>
+<tr><td>Enquiry form on tour detail page</td><td>1h</td><td>Inline mini-form</td></tr>
+<tr><td>Image gallery lightbox on tour detail</td><td>1h</td><td>GLightbox for gallery field</td></tr>
+<tr><td>Blog category filters on frontend</td><td>2h</td><td>Tab/filter UI</td></tr>
+<tr><td>Payment receipt PDF</td><td>2h</td><td>Generate on payment record</td></tr>
+<tr><td>Sitemap.xml generation</td><td>30m</td><td>spatie/laravel-sitemap</td></tr>
+<tr><td>Client portal (login-free via token)</td><td>6h</td><td>access_token field exists</td></tr>
+<tr><td>WhatsApp Business API</td><td>4h</td><td>Auto-send messages</td></tr>
+</table>
+</div>
+
+<hr style="margin:40px 0">
+<p style="color:#999;font-size:11px">UniWorld Holidays Technical Documentation v1.0 | Generated July 2026 | NOT for public access</p>
+</body>
+</html>

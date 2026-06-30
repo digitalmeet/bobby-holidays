@@ -31,13 +31,24 @@
             @include('frontend.components.section-heading', [
                 'kicker' => 'Signature Destinations',
                 'title' => 'Blue-sky escapes travellers ask for first',
-                'text' => 'Static destination cards today, ready for CMS-managed destination records, galleries, and package relations later.',
+                'text' => 'Explore our curated selection of the most popular destinations.',
             ])
             <div class="destination-carousel owl-carousel owl-theme">
-                @include('frontend.components.destination-card', ['image' => 'assets/frontend/images/destination-goa.svg', 'title' => 'Goa Coastal Escape', 'location' => 'India', 'duration' => '4 Days', 'description' => 'Beach stays, relaxed cafes, water sports, and sunset evenings planned with smooth transfers.', 'url' => route('frontend.domestic')])
-                @include('frontend.components.destination-card', ['image' => 'assets/frontend/images/destination-kashmir.svg', 'title' => 'Kashmir Valley Retreat', 'location' => 'India', 'duration' => '6 Days', 'description' => 'Houseboats, gardens, snow views, and elegant sightseeing across Srinagar and Gulmarg.', 'url' => route('frontend.domestic')])
-                @include('frontend.components.destination-card', ['image' => 'assets/frontend/images/destination-dubai.svg', 'title' => 'Dubai Luxury Break', 'location' => 'UAE', 'duration' => '5 Days', 'description' => 'Desert safari, Burj Khalifa, marina evenings, premium shopping, and family attractions.', 'url' => route('frontend.international')])
-                @include('frontend.components.destination-card', ['image' => 'assets/frontend/images/destination-bali.svg', 'title' => 'Bali Honeymoon Mood', 'location' => 'Indonesia', 'duration' => '6 Days', 'description' => 'Private villas, temples, beaches, floating breakfast, and slow romantic experiences.', 'url' => route('frontend.international')])
+                @forelse($featuredDestinations ?? [] as $destination)
+                    @include('frontend.components.destination-card', [
+                        'image' => $destination->hero_image ? asset('storage/' . $destination->hero_image) : asset('assets/frontend/images/destination-goa.svg'),
+                        'title' => $destination->name,
+                        'location' => $destination->country ?? $destination->continent,
+                        'duration' => ($destination->tours_count ?? 0) . ' Packages',
+                        'description' => $destination->short_description ?? 'Discover ' . $destination->name,
+                        'url' => route('frontend.destination.show', $destination->slug),
+                    ])
+                @empty
+                    @include('frontend.components.destination-card', ['image' => 'assets/frontend/images/destination-goa.svg', 'title' => 'Goa Coastal Escape', 'location' => 'India', 'duration' => '4 Days', 'description' => 'Beach stays, relaxed cafes, water sports, and sunset evenings.', 'url' => route('frontend.domestic')])
+                    @include('frontend.components.destination-card', ['image' => 'assets/frontend/images/destination-kashmir.svg', 'title' => 'Kashmir Valley Retreat', 'location' => 'India', 'duration' => '6 Days', 'description' => 'Houseboats, gardens, snow views, and elegant sightseeing.', 'url' => route('frontend.domestic')])
+                    @include('frontend.components.destination-card', ['image' => 'assets/frontend/images/destination-dubai.svg', 'title' => 'Dubai Luxury Break', 'location' => 'UAE', 'duration' => '5 Days', 'description' => 'Desert safari, Burj Khalifa, marina evenings.', 'url' => route('frontend.international')])
+                    @include('frontend.components.destination-card', ['image' => 'assets/frontend/images/destination-bali.svg', 'title' => 'Bali Honeymoon Mood', 'location' => 'Indonesia', 'duration' => '6 Days', 'description' => 'Private villas, temples, beaches, floating breakfast.', 'url' => route('frontend.international')])
+                @endforelse
             </div>
         </div>
     </section>
@@ -57,7 +68,7 @@
                 <div class="col-lg-6" data-aos="fade-left">
                     <span class="section-kicker"><i class="fa-solid fa-circle-check"></i> The UniWorld Way</span>
                     <h2 class="section-title">Travel planning that feels calm, clear, and personal.</h2>
-                    <p class="section-text mb-4">We help travellers choose the right destination, hotel category, route, activities, and travel pace. Every block is static now but structured for future package, destination, testimonial, and enquiry data.</p>
+                    <p class="section-text mb-4">We help travellers choose the right destination, hotel category, route, activities, and travel pace — from enquiry to return journey.</p>
                     <div class="row g-3">
                         <div class="col-sm-6">@include('frontend.components.service-card', ['icon' => 'fa-solid fa-route', 'title' => 'Balanced Itineraries', 'description' => 'Sightseeing, leisure, transfers, and rest time planned with care.'])</div>
                         <div class="col-sm-6">@include('frontend.components.service-card', ['icon' => 'fa-solid fa-shield-heart', 'title' => 'Reliable Support', 'description' => 'Practical help before, during, and after the journey.'])</div>
@@ -72,12 +83,26 @@
             @include('frontend.components.section-heading', [
                 'kicker' => 'Best Selling Packages',
                 'title' => 'Holiday plans built for real travellers',
-                'text' => 'These cards are ready to become dynamic package records with slugs, inclusions, seasonal rates, and enquiry tracking.',
+                'text' => 'Our most popular tour packages curated for unforgettable experiences.',
             ])
             <div class="row g-4">
-                <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/destination-kashmir.svg', 'title' => 'Kashmir Delight', 'duration' => '5 Nights / 6 Days', 'type' => 'Family', 'description' => 'Srinagar, Gulmarg, Pahalgam, houseboat stay, and scenic transfers.', 'price' => 'INR 24,999', 'url' => route('frontend.package.show')])</div>
-                <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/destination-dubai.svg', 'title' => 'Dubai Explorer', 'duration' => '4 Nights / 5 Days', 'type' => 'Group', 'description' => 'City tour, desert safari, dhow cruise, and Burj Khalifa experience.', 'price' => 'INR 49,999', 'url' => route('frontend.package.show')])</div>
-                <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/destination-bali.svg', 'title' => 'Romantic Bali', 'duration' => '5 Nights / 6 Days', 'type' => 'Couple', 'description' => 'Villa stay, island tours, beach clubs, and honeymoon inclusions.', 'price' => 'INR 64,999', 'url' => route('frontend.package.show')])</div>
+                @forelse($featuredTours ?? [] as $tour)
+                    <div class="col-lg-4 col-md-6">
+                        @include('frontend.components.package-card', [
+                            'image' => $tour->hero_image ? asset('storage/' . $tour->hero_image) : asset('assets/frontend/images/destination-kashmir.svg'),
+                            'title' => $tour->title,
+                            'duration' => $tour->duration_nights . ' Nights / ' . $tour->duration_days . ' Days',
+                            'type' => ucfirst($tour->category ?? 'Tour'),
+                            'description' => $tour->subtitle ?? str($tour->overview ?? '')->stripTags()->limit(100),
+                            'price' => $tour->starting_price ? 'INR ' . number_format($tour->starting_price) : 'On Request',
+                            'url' => route('frontend.tour.show', $tour->slug),
+                        ])
+                    </div>
+                @empty
+                    <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/destination-kashmir.svg', 'title' => 'Kashmir Delight', 'duration' => '5 Nights / 6 Days', 'type' => 'Family', 'description' => 'Srinagar, Gulmarg, Pahalgam, houseboat stay, and scenic transfers.', 'price' => 'INR 24,999', 'url' => '#'])</div>
+                    <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/destination-dubai.svg', 'title' => 'Dubai Explorer', 'duration' => '4 Nights / 5 Days', 'type' => 'Group', 'description' => 'City tour, desert safari, dhow cruise, and Burj Khalifa experience.', 'price' => 'INR 49,999', 'url' => '#'])</div>
+                    <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/destination-bali.svg', 'title' => 'Romantic Bali', 'duration' => '5 Nights / 6 Days', 'type' => 'Couple', 'description' => 'Villa stay, island tours, beach clubs, and honeymoon inclusions.', 'price' => 'INR 64,999', 'url' => '#'])</div>
+                @endforelse
             </div>
         </div>
     </section>
@@ -89,7 +114,7 @@
             @include('frontend.components.section-heading', [
                 'kicker' => 'Services',
                 'title' => 'Everything your trip needs',
-                'text' => 'Service blocks can later connect to service pages, destination modules, or CMS-managed content.',
+                'text' => 'Complete travel solutions for families, couples, and corporate groups.',
             ])
             <div class="row g-4">
                 <div class="col-lg-3 col-md-6">@include('frontend.components.service-card', ['icon' => 'fa-solid fa-suitcase-rolling', 'title' => 'Tour Packages', 'description' => 'Domestic and international packages for every travel style.'])</div>
@@ -104,34 +129,37 @@
         <div class="container">
             @include('frontend.components.section-heading', [
                 'kicker' => 'Guest Notes',
-                'title' => 'Designed for confident travel',
-                'text' => 'Testimonials are static placeholders ready for approval status, ratings, traveller type, and destination relations.',
+                'title' => 'What our travellers say',
+                'text' => 'Real feedback from families, couples, and groups who travelled with us.',
             ])
             <div class="testimonial-carousel owl-carousel owl-theme">
-                <div class="testimonial-card">
-                    <div class="rating mb-3">★★★★★</div>
-                    <p class="text-muted">The Dubai plan was smooth from pickup to sightseeing. We had enough time for family activities and relaxed evenings.</p>
-                    <div class="d-flex align-items-center gap-3 mt-4">
-                        <span class="testimonial-avatar d-inline-flex align-items-center justify-content-center"><i class="fa-solid fa-user"></i></span>
-                        <div><strong>Mehta Family</strong><span class="d-block text-muted small">Dubai Explorer</span></div>
+                @forelse($testimonials ?? [] as $testimonial)
+                    <div class="testimonial-card">
+                        <div class="rating mb-3">{{ str_repeat('★', $testimonial->rating) }}{{ str_repeat('☆', 5 - $testimonial->rating) }}</div>
+                        <p class="text-muted">{{ $testimonial->content }}</p>
+                        <div class="d-flex align-items-center gap-3 mt-4">
+                            <span class="testimonial-avatar d-inline-flex align-items-center justify-content-center">
+                                @if($testimonial->avatar)
+                                    <img src="{{ asset('storage/' . $testimonial->avatar) }}" alt="{{ $testimonial->name }}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover">
+                                @else
+                                    <i class="fa-solid fa-user"></i>
+                                @endif
+                            </span>
+                            <div><strong>{{ $testimonial->name }}</strong><span class="d-block text-muted small">{{ $testimonial->location ?? ($testimonial->tour?->title ?? '') }}</span></div>
+                        </div>
                     </div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="rating mb-3">★★★★★</div>
-                    <p class="text-muted">Our Kashmir trip felt beautifully paced. Hotels, car, and sightseeing were handled with real attention.</p>
-                    <div class="d-flex align-items-center gap-3 mt-4">
-                        <span class="testimonial-avatar d-inline-flex align-items-center justify-content-center"><i class="fa-solid fa-user"></i></span>
-                        <div><strong>Shah Family</strong><span class="d-block text-muted small">Kashmir Retreat</span></div>
+                @empty
+                    <div class="testimonial-card">
+                        <div class="rating mb-3">★★★★★</div>
+                        <p class="text-muted">The Dubai plan was smooth from pickup to sightseeing. We had enough time for family activities.</p>
+                        <div class="d-flex align-items-center gap-3 mt-4"><span class="testimonial-avatar d-inline-flex align-items-center justify-content-center"><i class="fa-solid fa-user"></i></span><div><strong>Mehta Family</strong><span class="d-block text-muted small">Dubai Explorer</span></div></div>
                     </div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="rating mb-3">★★★★★</div>
-                    <p class="text-muted">The honeymoon inclusions in Bali were thoughtful, and the itinerary still gave us enough private time.</p>
-                    <div class="d-flex align-items-center gap-3 mt-4">
-                        <span class="testimonial-avatar d-inline-flex align-items-center justify-content-center"><i class="fa-solid fa-user"></i></span>
-                        <div><strong>Aarav & Nisha</strong><span class="d-block text-muted small">Bali Honeymoon</span></div>
+                    <div class="testimonial-card">
+                        <div class="rating mb-3">★★★★★</div>
+                        <p class="text-muted">Our Kashmir trip felt beautifully paced. Hotels, car, and sightseeing were handled with attention.</p>
+                        <div class="d-flex align-items-center gap-3 mt-4"><span class="testimonial-avatar d-inline-flex align-items-center justify-content-center"><i class="fa-solid fa-user"></i></span><div><strong>Shah Family</strong><span class="d-block text-muted small">Kashmir Retreat</span></div></div>
                     </div>
-                </div>
+                @endforelse
             </div>
         </div>
     </section>
@@ -141,12 +169,25 @@
             @include('frontend.components.section-heading', [
                 'kicker' => 'Travel Stories',
                 'title' => 'Helpful reads before you go',
-                'text' => 'Blog cards are static placeholders for future posts, categories, slugs, and SEO data.',
+                'text' => 'Ideas, checklists, and destination tips from our travel experts.',
             ])
             <div class="row g-4">
-                <div class="col-lg-4 col-md-6">@include('frontend.components.blog-card', ['image' => 'assets/frontend/images/blog-family-trip.svg', 'title' => 'How to plan a family holiday without stress', 'date' => '08 Jun 2026', 'category' => 'Planning', 'description' => 'Simple ways to balance comfort, sightseeing, food preferences, and travel time.', 'url' => route('frontend.blog.show')])</div>
-                <div class="col-lg-4 col-md-6">@include('frontend.components.blog-card', ['image' => 'assets/frontend/images/blog-passport.svg', 'title' => 'Visa documents travellers should prepare early', 'date' => '08 Jun 2026', 'category' => 'Visa', 'description' => 'A practical checklist for smoother international trip preparation.', 'url' => route('frontend.blog.show')])</div>
-                <div class="col-lg-4 col-md-6">@include('frontend.components.blog-card', ['image' => 'assets/frontend/images/blog-honeymoon.svg', 'title' => 'Best honeymoon ideas for beach lovers', 'date' => '08 Jun 2026', 'category' => 'Honeymoon', 'description' => 'Beach destinations with privacy, romance, and memorable local experiences.', 'url' => route('frontend.blog.show')])</div>
+                @forelse($posts ?? [] as $post)
+                    <div class="col-lg-4 col-md-6">
+                        @include('frontend.components.blog-card', [
+                            'image' => $post->featured_image ? asset('storage/' . $post->featured_image) : asset('assets/frontend/images/blog-family-trip.svg'),
+                            'title' => $post->title,
+                            'date' => $post->published_at?->format('d M Y') ?? $post->created_at->format('d M Y'),
+                            'category' => ucfirst($post->category ?? 'General'),
+                            'description' => $post->excerpt ?? str($post->content)->stripTags()->limit(120),
+                            'url' => route('frontend.blog.show', $post->slug),
+                        ])
+                    </div>
+                @empty
+                    <div class="col-lg-4 col-md-6">@include('frontend.components.blog-card', ['image' => 'assets/frontend/images/blog-family-trip.svg', 'title' => 'How to plan a family holiday without stress', 'date' => '08 Jun 2026', 'category' => 'Planning', 'description' => 'Simple ways to balance comfort, sightseeing, food preferences, and travel time.', 'url' => route('frontend.blog')])</div>
+                    <div class="col-lg-4 col-md-6">@include('frontend.components.blog-card', ['image' => 'assets/frontend/images/blog-passport.svg', 'title' => 'Visa documents travellers should prepare early', 'date' => '08 Jun 2026', 'category' => 'Visa', 'description' => 'A practical checklist for smoother international trip preparation.', 'url' => route('frontend.blog')])</div>
+                    <div class="col-lg-4 col-md-6">@include('frontend.components.blog-card', ['image' => 'assets/frontend/images/blog-honeymoon.svg', 'title' => 'Best honeymoon ideas for beach lovers', 'date' => '08 Jun 2026', 'category' => 'Honeymoon', 'description' => 'Beach destinations with privacy, romance, and memorable local experiences.', 'url' => route('frontend.blog')])</div>
+                @endforelse
             </div>
         </div>
     </section>

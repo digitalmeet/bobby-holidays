@@ -7,6 +7,6 @@
         </div>
         <h3 class="h5 fw-bold mb-2">{{ $title }}</h3>
         <p class="text-muted mb-3">{{ $description }}</p>
-        <a class="btn-outline-brand" href="{{ $url ?? route('frontend.blog.show') }}">Read More <i class="fa-solid fa-arrow-right"></i></a>
+        <a class="btn-outline-brand" href="{{ $url ?? route('frontend.blog') }}">Read More <i class="fa-solid fa-arrow-right"></i></a>
     </div>
 </article>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UniWorld Holidays — Deployment Guide</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;line-height:1.7;color:#1a1a1a;max-width:900px;margin:0 auto;padding:40px 20px;font-size:14px}
+h1{color:#064f68;font-size:26px;margin-bottom:6px}
+h2{color:#064f68;font-size:19px;margin:36px 0 14px;padding-bottom:6px;border-bottom:2px solid #064f68}
+h3{color:#333;font-size:15px;margin:20px 0 8px}
+p{margin-bottom:10px}
+pre{background:#1e293b;color:#e2e8f0;padding:16px;border-radius:6px;overflow-x:auto;margin:12px 0;font-size:13px;line-height:1.5}
+code{background:#f0f4f8;padding:2px 6px;border-radius:3px;font-size:13px;color:#064f68}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px}
+th,td{border:1px solid #e5e7eb;padding:10px 12px;text-align:left}
+th{background:#064f68;color:#fff;font-weight:600}
+tr:nth-child(even){background:#f9fafb}
+ul,ol{margin:0 0 14px 22px}
+li{margin-bottom:5px}
+.warn{background:#fef3c7;border-left:4px solid #f59e0b;padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0}
+.info{background:#e8f4fd;border-left:4px solid #064f68;padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0}
+.success{background:#d1fae5;border-left:4px solid #10b981;padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0}
+.step{background:#f8fafb;border:1px solid #e5e7eb;padding:14px 18px;margin:14px 0;border-radius:8px}
+.step-num{display:inline-block;background:#064f68;color:#fff;width:24px;height:24px;text-align:center;border-radius:50%;font-size:12px;line-height:24px;margin-right:8px}
+</style>
+</head>
+<body>
+
+<h1>Deployment Guide</h1>
+<p style="color:#666;margin-bottom:30px">UniWorld Holidays — Production Server Setup &amp; Deployment</p>
+
+<h2>1. Server Requirements</h2>
+
+<h3>Minimum Hardware</h3>
+<table>
+<tr><th>Resource</th><th>Minimum</th><th>Recommended</th></tr>
+<tr><td>CPU</td><td>1 vCPU</td><td>2 vCPU</td></tr>
+<tr><td>RAM</td><td>1 GB</td><td>2 GB</td></tr>
+<tr><td>Storage</td><td>20 GB SSD</td><td>40 GB SSD</td></tr>
+<tr><td>Bandwidth</td><td>1 TB/month</td><td>Unlimited</td></tr>
+</table>
+
+<h3>Operating System</h3>
+<table>
+<tr><th>OS</th><th>Version</th><th>Notes</th></tr>
+<tr><td>Ubuntu</td><td>22.04 LTS or 24.04 LTS</td><td>Recommended</td></tr>
+<tr><td>Debian</td><td>12+</td><td>Alternative</td></tr>
+<tr><td>CentOS/AlmaLinux</td><td>9+</td><td>Alternative</td></tr>
+</table>
+
+<h2>2. Software Dependencies</h2>
+
+<h3>Required Software</h3>
+<table>
+<tr><th>Software</th><th>Required Version</th><th>Tested Version</th><th>Purpose</th></tr>
+<tr><td>PHP</td><td>≥ 8.4</td><td>8.4.12</td><td>Application runtime</td></tr>
+<tr><td>Composer</td><td>≥ 2.7</td><td>2.10.1</td><td>PHP dependency manager</td></tr>
+<tr><td>MySQL</td><td>≥ 8.0</td><td>8.4.3</td><td>Database</td></tr>
+<tr><td>Nginx</td><td>≥ 1.18</td><td>Latest</td><td>Web server (recommended)</td></tr>
+<tr><td>Git</td><td>≥ 2.30</td><td>Latest</td><td>Version control</td></tr>
+<tr><td>Supervisor</td><td>≥ 4.0</td><td>Latest</td><td>Queue worker management</td></tr>
+<tr><td>Cron</td><td>System default</td><td>—</td><td>Scheduled tasks</td></tr>
+</table>
+
+<h3>PHP Extensions Required</h3>
+<table>
+<tr><th>Extension</th><th>Purpose</th></tr>
+<tr><td>bcmath</td><td>Decimal calculations</td></tr>
+<tr><td>ctype</td><td>Character type checking</td></tr>
+<tr><td>curl</td><td>HTTP requests (Razorpay API)</td></tr>
+<tr><td>dom</td><td>XML/HTML parsing</td></tr>
+<tr><td>fileinfo</td><td>File type detection (uploads)</td></tr>
+<tr><td>gd</td><td>Image processing</td></tr>
+<tr><td>json</td><td>JSON encoding/decoding</td></tr>
+<tr><td>mbstring</td><td>Multi-byte string handling</td></tr>
+<tr><td>openssl</td><td>Encryption &amp; HTTPS</td></tr>
+<tr><td>pdo_mysql</td><td>MySQL database driver</td></tr>
+<tr><td>tokenizer</td><td>PHP tokenizer</td></tr>
+<tr><td>xml</td><td>XML parsing</td></tr>
+<tr><td>zip</td><td>ZIP file handling (exports)</td></tr>
+</table>
+
+<h3>Optional (Not Required for Deployment)</h3>
+<table>
+<tr><th>Software</th><th>Version</th><th>Purpose</th></tr>
+<tr><td>Node.js</td><td>≥ 18</td><td>NOT needed in production (no frontend build step)</td></tr>
+<tr><td>NPM</td><td>≥ 9</td><td>NOT needed (CSS/JS served from CDN)</td></tr>
+<tr><td>Redis</td><td>≥ 6</td><td>Optional: faster cache/sessions (default uses MySQL)</td></tr>
+</table>
+
+<div class="info">
+<strong>Note:</strong> This project does NOT require Node.js or NPM for production deployment. All frontend assets (Bootstrap, jQuery, Font Awesome, etc.) are loaded from CDN. There is no Vite/Webpack build step.
+</div>
+
+<h2>3. Server Setup (Ubuntu 22.04)</h2>
+
+<h3>Install PHP 8.4</h3>
+<pre>
+sudo add-apt-repository ppa:ondrej/php -y
+sudo apt update
+sudo apt install php8.4 php8.4-fpm php8.4-cli php8.4-common \
+    php8.4-mysql php8.4-zip php8.4-gd php8.4-mbstring \
+    php8.4-curl php8.4-xml php8.4-bcmath php8.4-fileinfo \
+    php8.4-tokenizer php8.4-dom -y
+</pre>
+
+<h3>Install MySQL 8</h3>
+<pre>
+sudo apt install mysql-server -y
+sudo mysql_secure_installation
+
+# Create database and user
+sudo mysql -e "CREATE DATABASE bobby_holidays CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+sudo mysql -e "CREATE USER 'uniworld'@'localhost' IDENTIFIED BY 'YOUR_STRONG_PASSWORD';"
+sudo mysql -e "GRANT ALL PRIVILEGES ON bobby_holidays.* TO 'uniworld'@'localhost';"
+sudo mysql -e "FLUSH PRIVILEGES;"
+</pre>
+
+<h3>Install Nginx</h3>
+<pre>
+sudo apt install nginx -y
+</pre>
+
+<h3>Install Composer</h3>
+<pre>
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+</pre>
+
+<h3>Install Supervisor (for queue worker)</h3>
+<pre>
+sudo apt install supervisor -y
+</pre>
+
+<h2>4. Application Deployment</h2>
+
+<div class="step">
+<span class="step-num">1</span><strong>Clone the repository</strong>
+<pre>
+cd /var/www
+git clone YOUR_REPO_URL bobby-holidays
+cd bobby-holidays
+</pre>
+</div>
+
+<div class="step">
+<span class="step-num">2</span><strong>Install PHP dependencies</strong>
+<pre>
+composer install --no-dev --optimize-autoloader
+</pre>
+</div>
+
+<div class="step">
+<span class="step-num">3</span><strong>Configure environment</strong>
+<pre>
+cp .env.example .env
+php artisan key:generate
+</pre>
+<p>Edit <code>.env</code> with production values:</p>
+<pre>
+APP_NAME="UniWorld Holidays"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-domain.com
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bobby_holidays
+DB_USERNAME=uniworld
+DB_PASSWORD=YOUR_STRONG_PASSWORD
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=hello@uniworldholidays.com
+MAIL_FROM_NAME="UniWorld Holidays"
+
+SESSION_DRIVER=database
+CACHE_STORE=database
+QUEUE_CONNECTION=database
+</pre>
+</div>
+
+<div class="step">
+<span class="step-num">4</span><strong>Set permissions</strong>
+<pre>
+sudo chown -R www-data:www-data /var/www/bobby-holidays
+sudo chmod -R 755 /var/www/bobby-holidays
+sudo chmod -R 775 storage bootstrap/cache
+</pre>
+</div>
+
+<div class="step">
+<span class="step-num">5</span><strong>Run migrations and seeders</strong>
+<pre>
+php artisan migrate --force
+php artisan db:seed --class=RolesAndPermissionsSeeder --force
+php artisan db:seed --class=AdminUserSeeder --force
+php artisan storage:link
+</pre>
+</div>
+
+<div class="step">
+<span class="step-num">6</span><strong>Optimize for production</strong>
+<pre>
+php artisan config:cache
+php artisan route:cache
+php artisan event:cache
+php artisan view:cache
+php artisan filament:optimize
+</pre>
+</div>
+
+<h2>5. Nginx Configuration</h2>
+<pre>
+server {
+    listen 80;
+    server_name your-domain.com www.your-domain.com;
+    root /var/www/bobby-holidays/public;
+    index index.php;
+
+    charset utf-8;
+    client_max_body_size 20M;
+
+    # Gzip compression
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml;
+    gzip_min_length 1000;
+
+    # Static file caching
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff2)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Block access to docs
+    location /docs {
+        auth_basic "Restricted";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+</pre>
+<pre>
+# Enable site and restart
+sudo ln -s /etc/nginx/sites-available/bobby-holidays /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+</pre>
+
+<h2>6. SSL Certificate (Let's Encrypt)</h2>
+<pre>
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d your-domain.com -d www.your-domain.com
+</pre>
+
+<h2>7. Cron Job (Scheduler)</h2>
+<pre>
+sudo crontab -e
+
+# Add this line:
+* * * * * cd /var/www/bobby-holidays && php artisan schedule:run >> /dev/null 2>&1
+</pre>
+<p>This runs two scheduled commands:</p>
+<ul>
+<li><code>quotations:expire</code> — Daily at 00:30 (auto-expires past-validity quotations)</li>
+<li><code>enquiries:follow-up-reminders</code> — Daily at 09:00 (sends overdue follow-up notifications)</li>
+</ul>
+
+<h2>8. Queue Worker (Supervisor)</h2>
+<pre>
+sudo nano /etc/supervisor/conf.d/bobby-holidays-worker.conf
+</pre>
+<pre>
+[program:bobby-holidays-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/bobby-holidays/artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/var/www/bobby-holidays/storage/logs/worker.log
+stopwaitsecs=3600
+</pre>
+<pre>
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start bobby-holidays-worker:*
+</pre>
+
+<h2>9. Post-Deployment Checklist</h2>
+<ol>
+<li>Login to admin panel → Change default password</li>
+<li>Go to Site Settings → Fill company details, social links</li>
+<li>Go to Site Settings → SEO tab → Set default title, description, Google Analytics ID</li>
+<li>Go to Site Settings → Payment Gateway → Configure Razorpay (if needed)</li>
+<li>Create destinations and tours</li>
+<li>Test contact form submission</li>
+<li>Test quotation PDF generation</li>
+<li>Test email sending (mark a quotation as sent)</li>
+<li>Verify scheduled commands: <code>php artisan schedule:list</code></li>
+</ol>
+
+<h2>10. Updating the Application</h2>
+<pre>
+cd /var/www/bobby-holidays
+git pull origin main
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan event:cache
+php artisan view:cache
+php artisan filament:optimize
+sudo supervisorctl restart bobby-holidays-worker:*
+</pre>
+
+<h2>11. Backup Strategy</h2>
+<pre>
+# Database backup (daily via cron)
+mysqldump -u uniworld -p bobby_holidays | gzip > /backups/db_$(date +%Y%m%d).sql.gz
+
+# Files backup (weekly)
+tar -czf /backups/files_$(date +%Y%m%d).tar.gz /var/www/bobby-holidays/storage/app/public
+
+# Recommended: Use spatie/laravel-backup for automated backups to S3
+# composer require spatie/laravel-backup
+# php artisan backup:run
+</pre>
+
+<h2>12. Monitoring &amp; Logs</h2>
+<pre>
+# Application logs
+tail -f /var/www/bobby-holidays/storage/logs/laravel.log
+
+# Queue worker logs
+tail -f /var/www/bobby-holidays/storage/logs/worker.log
+
+# Nginx access/error logs
+tail -f /var/log/nginx/access.log
+tail -f /var/log/nginx/error.log
+
+# PHP-FPM logs
+tail -f /var/log/php8.4-fpm.log
+</pre>
+
+<h2>13. Troubleshooting</h2>
+
+<h3>500 Internal Server Error</h3>
+<pre>
+# Check Laravel log
+tail -50 storage/logs/laravel.log
+
+# Check permissions
+sudo chown -R www-data:www-data storage bootstrap/cache
+sudo chmod -R 775 storage bootstrap/cache
+
+# Clear all caches
+php artisan optimize:clear
+</pre>
+
+<h3>Styles/Assets Not Loading</h3>
+<pre>
+# Check APP_URL in .env matches your domain
+# Ensure storage link exists
+php artisan storage:link
+</pre>
+
+<h3>Email Not Sending</h3>
+<pre>
+# Test mail config
+php artisan tinker
+> Mail::raw('Test', fn($m) => $m->to('test@example.com')->subject('Test'));
+
+# Check MAIL_* settings in .env
+# For Gmail: use App Password (not regular password)
+</pre>
+
+<h3>Queue Jobs Not Processing</h3>
+<pre>
+# Check supervisor status
+sudo supervisorctl status
+
+# Restart worker
+sudo supervisorctl restart bobby-holidays-worker:*
+
+# Process manually (debugging)
+php artisan queue:work --once
+</pre>
+
+<hr style="margin:40px 0">
+<p style="color:#999;font-size:11px">UniWorld Holidays Deployment Guide v1.0 | July 2026</p>
+</body>
+</html>

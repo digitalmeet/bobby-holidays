@@ -25,14 +25,16 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->registration()
             ->passwordReset()
-            ->emailVerification()
             ->profile()
+            ->spa()
+            ->topNavigation(false)
+            ->spaUrlExceptions(['*/admin/logout'])
             ->brandName('UniWorld Holidays')
-            ->brandLogo(asset('images/logo.png'))
+            ->brandLogo(asset('assets/frontend/images/uniworld-logo-cropped.png'))
+            ->darkModeBrandLogo(asset('assets/frontend/images/uniworld-logo-cropped.png'))
             ->brandLogoHeight('2.5rem')
-            ->favicon(asset('images/favicon.ico'))
+            ->favicon(asset('assets/frontend/images/uniworld-logo-cropped.png'))
             ->colors([
                 'primary' => Color::hex('#064f68'),
                 'gray' => Color::Gray,
@@ -46,7 +48,10 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->databaseNotifications()
+            ->databaseNotificationsPolling('60s')
             ->darkMode(true)
+            ->sidebarCollapsibleOnDesktop()
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->authGuard('web')
             ->authPasswordBroker('users')
             ->middleware([

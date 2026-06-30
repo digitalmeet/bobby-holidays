@@ -7,10 +7,10 @@
                 </a>
                 <p>UniWorld Holidays designs domestic and international vacations, group tours, honeymoon escapes, and business travel support with reliable planning from enquiry to return.</p>
                 <div class="footer-social mt-3">
-                    <a href="https://www.facebook.com/" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="https://www.instagram.com/" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="https://www.youtube.com/" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
-                    <a href="https://www.linkedin.com/" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                    @if(setting('social_facebook'))<a href="{{ setting('social_facebook') }}" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>@endif
+                    @if(setting('social_instagram'))<a href="{{ setting('social_instagram') }}" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>@endif
+                    @if(setting('social_youtube'))<a href="{{ setting('social_youtube') }}" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>@endif
+                    @if(setting('social_linkedin'))<a href="{{ setting('social_linkedin') }}" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>@endif
                 </div>
             </div>
 
@@ -31,6 +31,7 @@
             <div class="col-lg-2 col-md-6 footer-link-col">
                 <h3 class="footer-title">Destinations</h3>
                 <ul class="footer-links">
+                    <li><a href="{{ route('frontend.destinations') }}">All Destinations</a></li>
                     <li><a href="{{ route('frontend.domestic') }}">Goa</a></li>
                     <li><a href="{{ route('frontend.domestic') }}">Kashmir</a></li>
                     <li><a href="{{ route('frontend.domestic') }}">Kerala</a></li>
@@ -54,9 +55,9 @@
             <div class="col-lg-2 col-md-6 footer-contact-col">
                 <h3 class="footer-title">Contact</h3>
                 <ul class="footer-links">
-                    <li><a href="tel:+919876543210">+91 98765 43210</a></li>
-                    <li><a href="mailto:hello@uniworldholidays.com">hello@uniworldholidays.com</a></li>
-                    <li>Ahmedabad, Gujarat, India</li>
+                    <li><a href="tel:{{ setting('company_phone', '+91 98765 43210') }}">{{ setting('company_phone', '+91 98765 43210') }}</a></li>
+                    <li><a href="mailto:{{ setting('company_email', 'hello@uniworldholidays.com') }}">{{ setting('company_email', 'hello@uniworldholidays.com') }}</a></li>
+                    <li>{{ setting('company_city', 'Ahmedabad, Gujarat, India') }}</li>
                 </ul>
                 <form class="mt-3" action="{{ route('frontend.contact') }}" method="get">
                     <div class="input-group">

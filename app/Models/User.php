@@ -48,4 +48,70 @@ class User extends Authenticatable
     {
         return $this->hasRole('super_admin');
     }
+
+    // Relationships
+
+    /**
+     * Get all enquiries assigned to this user.
+     */
+    public function assignedEnquiries()
+    {
+        return $this->hasMany(Enquiry::class, 'assigned_to');
+    }
+
+    /**
+     * Get all quotations prepared by this user.
+     */
+    public function preparedQuotations()
+    {
+        return $this->hasMany(Quotation::class, 'prepared_by');
+    }
+
+    /**
+     * Get all bookings assigned to this user.
+     */
+    public function assignedBookings()
+    {
+        return $this->hasMany(Booking::class, 'assigned_to');
+    }
+
+    /**
+     * Get all payments recorded by this user.
+     */
+    public function recordedPayments()
+    {
+        return $this->hasMany(Payment::class, 'recorded_by');
+    }
+
+    /**
+     * Get all quotation histories changed by this user.
+     */
+    public function quotationHistories()
+    {
+        return $this->hasMany(QuotationHistory::class, 'changed_by');
+    }
+
+    /**
+     * Get all booking status histories changed by this user.
+     */
+    public function bookingStatusHistories()
+    {
+        return $this->hasMany(BookingStatusHistory::class, 'changed_by');
+    }
+
+    /**
+     * Get all payment histories changed by this user.
+     */
+    public function paymentHistories()
+    {
+        return $this->hasMany(PaymentHistory::class, 'changed_by');
+    }
+
+    /**
+     * Get all posts authored by this user.
+     */
+    public function posts()
+    {
+        return $this->hasMany(Post::class, 'author_id');
+    }
 }

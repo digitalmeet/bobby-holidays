@@ -1,5 +1,5 @@
 <article class="package-card">
-    <img src="{{ asset($image) }}" alt="{{ $title }}">
+    <img src="{{ str_starts_with($image, 'http') || str_starts_with($image, '/storage') ? $image : asset($image) }}" alt="{{ $title }}">
     <div class="card-body-pad">
         <div class="package-meta">
             <span><i class="fa-solid fa-calendar-days"></i> {{ $duration }}</span>
@@ -9,7 +9,7 @@
         <p class="text-muted mb-3">{{ $description }}</p>
         <div class="d-flex align-items-center justify-content-between gap-3">
             <span class="package-price">{{ $price }}</span>
-            <a class="btn-brand" href="{{ $url ?? route('frontend.package.show') }}">Details</a>
+            <a class="btn-brand" href="{{ $url ?? route('frontend.contact') }}">Details</a>
         </div>
     </div>
 </article>
