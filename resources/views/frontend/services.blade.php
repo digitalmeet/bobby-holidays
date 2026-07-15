@@ -14,20 +14,20 @@
             </div>
             <div class="row g-4">
                 @php
-                    $services = app(App\Http\Controllers\FrontendController::class)->getServicesData();
+                    $services = $services ?? collect();
                 @endphp
-                @foreach($services as $service)
+                @foreach($services as $s)
                     <div class="col-lg-4 col-md-6">
                         <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
                             <div class="card-body p-4 d-flex flex-column">
                                 <div class="mb-3">
                                     <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10" style="width:56px;height:56px;">
-                                        <i class="{{ $service['icon'] }} fa-lg text-primary"></i>
+                                        <i class="{{ $s->icon }} fa-lg text-primary"></i>
                                     </span>
                                 </div>
-                                <h3 class="h5 fw-bold mb-2">{{ $service['title'] }}</h3>
-                                <p class="text-muted flex-grow-1">{{ $service['short'] }}</p>
-                                <a href="{{ route('frontend.service.show', $service['slug']) }}" class="btn-outline-brand mt-3 align-self-start">
+                                <h3 class="h5 fw-bold mb-2">{{ $s->title }}</h3>
+                                <p class="text-muted flex-grow-1">{{ $s->short_description }}</p>
+                                <a href="{{ route('frontend.service.show', $s->slug) }}" class="btn-outline-brand mt-3 align-self-start">
                                     Learn More <i class="fa-solid fa-arrow-right ms-1"></i>
                                 </a>
                             </div>

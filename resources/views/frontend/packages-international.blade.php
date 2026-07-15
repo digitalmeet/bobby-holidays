@@ -13,6 +13,7 @@
                 'title' => 'International packages made simple',
                 'text' => 'Visa assistance, flights, hotels, and sightseeing — all planned for you.',
             ])
+            @include('frontend.components.filter-bar')
             <div class="row g-4">
                 @forelse($tours ?? [] as $tour)
                     <div class="col-lg-4 col-md-6">

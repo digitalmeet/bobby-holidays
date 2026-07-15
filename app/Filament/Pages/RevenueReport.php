@@ -7,6 +7,7 @@ use App\Models\Payment;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Cache;
 use UnitEnum;
 
 class RevenueReport extends Page
@@ -28,36 +29,38 @@ class RevenueReport extends Page
 
     public function getViewData(): array
     {
-        $thisMonth = now()->startOfMonth();
-        $thisYear = now()->startOfYear();
+        return Cache::remember('report.revenue', 300, function () {
+            $thisMonth = now()->startOfMonth();
+            $thisYear = now()->startOfYear();
 
-        $revenueSummary = [
-            'this_month' => Payment::where('status', 'received')->where('payment_date', '>=', $thisMonth)->sum('amount'),
-            'this_year' => Payment::where('status', 'received')->where('payment_date', '>=', $thisYear)->sum('amount'),
-            'total_bookings_value' => Booking::whereNotIn('status', ['cancelled', 'refunded'])->sum('total_amount'),
-            'total_collected' => Payment::where('status', 'received')->sum('amount'),
-            'total_pending' => Booking::whereIn('status', ['confirmed', 'partial_paid'])->sum('balance_amount'),
-        ];
-
-        $monthlyRevenue = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $date = now()->subMonths($i);
-            $start = $date->copy()->startOfMonth();
-            $end = $date->copy()->endOfMonth();
-            $monthlyRevenue[] = [
-                'month' => $date->format('M Y'),
-                'revenue' => Payment::where('status', 'received')->whereBetween('payment_date', [$start, $end])->sum('amount'),
-                'bookings' => Booking::whereBetween('created_at', [$start, $end])->count(),
-                'cancellations' => Booking::where('status', 'cancelled')->whereBetween('cancelled_at', [$start, $end])->count(),
+            $revenueSummary = [
+                'this_month' => Payment::where('status', 'received')->where('payment_date', '>=', $thisMonth)->sum('amount'),
+                'this_year' => Payment::where('status', 'received')->where('payment_date', '>=', $thisYear)->sum('amount'),
+                'total_bookings_value' => Booking::whereNotIn('status', ['cancelled', 'refunded'])->sum('total_amount'),
+                'total_collected' => Payment::where('status', 'received')->sum('amount'),
+                'total_pending' => Booking::whereIn('status', ['confirmed', 'partial_paid'])->sum('balance_amount'),
             ];
-        }
 
-        $paymentMethods = Payment::where('status', 'received')
-            ->where('payment_date', '>=', $thisYear)
-            ->selectRaw('method, COUNT(*) as count, SUM(amount) as total')
-            ->groupBy('method')
-            ->get();
+            $monthlyRevenue = [];
+            for ($i = 5; $i >= 0; $i--) {
+                $date = now()->subMonths($i);
+                $start = $date->copy()->startOfMonth();
+                $end = $date->copy()->endOfMonth();
+                $monthlyRevenue[] = [
+                    'month' => $date->format('M Y'),
+                    'revenue' => Payment::where('status', 'received')->whereBetween('payment_date', [$start, $end])->sum('amount'),
+                    'bookings' => Booking::whereBetween('created_at', [$start, $end])->count(),
+                    'cancellations' => Booking::where('status', 'cancelled')->whereBetween('cancelled_at', [$start, $end])->count(),
+                ];
+            }
 
-        return compact('revenueSummary', 'monthlyRevenue', 'paymentMethods');
+            $paymentMethods = Payment::where('status', 'received')
+                ->where('payment_date', '>=', $thisYear)
+                ->selectRaw('method, COUNT(*) as count, SUM(amount) as total')
+                ->groupBy('method')
+                ->get();
+
+            return compact('revenueSummary', 'monthlyRevenue', 'paymentMethods');
+        });
     }
 }

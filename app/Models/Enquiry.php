@@ -110,8 +110,7 @@ class Enquiry extends Model
      */
     public function scopePending($query)
     {
-        return $query->where('status', 'new')
-            ->orWhere('status', 'contacted');
+        return $query->whereIn('status', ['new', 'contacted']);
     }
 
     /**
@@ -129,7 +128,6 @@ class Enquiry extends Model
     {
         return $query->whereNotNull('follow_up_at')
             ->where('follow_up_at', '<=', now())
-            ->where('status', '!=', 'converted')
-            ->where('status', '!=', 'lost');
+            ->whereNotIn('status', ['converted', 'lost']);
     }
 }

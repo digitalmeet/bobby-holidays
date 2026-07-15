@@ -8,7 +8,71 @@
 
 @section('content')
     {{-- Breadcrumb --}}
+    <div id="reading-progress"></div>
     @include('frontend.components.page-banner', ['title' => $tour->title, 'subtitle' => $tour->destination?->name ?? 'Packages'])
+
+    @push('head')
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "TouristTrip",
+        "name": "{{ $tour->title }}",
+        "description": "{{ str($tour->overview ?? $tour->subtitle ?? '')->stripTags()->limit(200) }}",
+        "touristType": "{{ ucfirst($tour->category ?? 'Leisure') }}",
+        "itinerary": {
+            "@type": "ItemList",
+            "numberOfItems": {{ $tour->duration_days }}
+        },
+        @if($tour->starting_price)
+        "offers": {
+            "@type": "Offer",
+            "price": "{{ $tour->starting_price }}",
+            "priceCurrency": "INR",
+            "availability": "https://schema.org/InStock"
+        },
+        @endif
+        "provider": {
+            "@type": "TravelAgency",
+            "name": "{{ setting('company_name', 'UniWorld Holidays') }}",
+            "url": "{{ url('/') }}"
+        }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ url('/') }}"},
+            {"@type": "ListItem", "position": 2, "name": "{{ $tour->destination?->name ?? 'Packages' }}", "item": "{{ $tour->destination ? route('frontend.destination.show', $tour->destination->slug) : route('frontend.domestic') }}"},
+            {"@type": "ListItem", "position": 3, "name": "{{ $tour->title }}"}
+        ]
+    }
+    </script>
+    @endpush
+
+    {{-- Sticky Tab Navigation --}}
+    <div class="tour-tab-nav bg-white border-bottom shadow-sm" style="position:sticky;top:70px;z-index:100;">
+        <div class="container">
+            <div class="d-flex gap-0 overflow-auto" style="scrollbar-width:none;">
+                @if($tour->overview)
+                    <a href="#overview" class="tour-tab-link px-3 py-3 text-decoration-none fw-medium small" style="color:#064f68;white-space:nowrap;border-bottom:2px solid transparent;">Overview</a>
+                @endif
+                @if($tour->highlights && count($tour->highlights))
+                    <a href="#highlights" class="tour-tab-link px-3 py-3 text-decoration-none fw-medium small" style="color:#064f68;white-space:nowrap;border-bottom:2px solid transparent;">Highlights</a>
+                @endif
+                @if($tour->itinerary && count($tour->itinerary))
+                    <a href="#itinerary" class="tour-tab-link px-3 py-3 text-decoration-none fw-medium small" style="color:#064f68;white-space:nowrap;border-bottom:2px solid transparent;">Itinerary</a>
+                @endif
+                @if(($tour->inclusions && count($tour->inclusions)) || ($tour->exclusions && count($tour->exclusions)))
+                    <a href="#inclusions" class="tour-tab-link px-3 py-3 text-decoration-none fw-medium small" style="color:#064f68;white-space:nowrap;border-bottom:2px solid transparent;">Inclusions</a>
+                @endif
+                @if($tour->pricing && $tour->pricing->count())
+                    <a href="#pricing" class="tour-tab-link px-3 py-3 text-decoration-none fw-medium small" style="color:#064f68;white-space:nowrap;border-bottom:2px solid transparent;">Pricing</a>
+                @endif
+            </div>
+        </div>
+    </div>
 
     <section class="section-padding">
         <div class="container">
@@ -63,9 +127,25 @@
                         </div>
                     </div>
 
+                    {{-- Gallery --}}
+                    @if($tour->gallery && count($tour->gallery))
+                        <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+                            <div class="card-body p-4">
+                                <h3 class="fw-bold mb-4" style="color:#064f68;"><i class="fa-solid fa-images me-2"></i>Photo Gallery</h3>
+                                <div class="tour-gallery-grid">
+                                    @foreach($tour->gallery as $index => $image)
+                                        <a href="{{ asset('storage/' . $image) }}" class="glightbox tour-gallery-item {{ $index === 0 ? 'tour-gallery-featured' : '' }}" data-gallery="tour-gallery">
+                                            <img src="{{ asset('storage/' . $image) }}" alt="{{ $tour->title }} photo {{ $index + 1 }}">
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Overview --}}
                     @if($tour->overview)
-                        <div class="card border-0 shadow-sm rounded-3 mb-4">
+                        <div id="overview" class="card border-0 shadow-sm rounded-3 mb-4">
                             <div class="card-body p-4 p-lg-5">
                                 <h3 class="fw-bold mb-3" style="color:#064f68;">Package Overview</h3>
                                 <div class="content-body">{!! $tour->overview !!}</div>
@@ -75,7 +155,7 @@
 
                     {{-- Highlights --}}
                     @if($tour->highlights && count($tour->highlights))
-                        <div class="card border-0 shadow-sm rounded-3 mb-4">
+                        <div id="highlights" class="card border-0 shadow-sm rounded-3 mb-4">
                             <div class="card-body p-4 p-lg-5">
                                 <h3 class="fw-bold mb-4" style="color:#064f68;">
                                     <i class="fa-solid fa-star me-2" style="color:#f59e0b;"></i>Tour Highlights
@@ -96,7 +176,7 @@
 
                     {{-- Itinerary --}}
                     @if($tour->itinerary && count($tour->itinerary))
-                        <div class="card border-0 shadow-sm rounded-3 mb-4">
+                        <div id="itinerary" class="card border-0 shadow-sm rounded-3 mb-4">
                             <div class="card-body p-4 p-lg-5">
                                 <h3 class="fw-bold mb-4" style="color:#064f68;">
                                     <i class="fa-solid fa-route me-2"></i>Day-wise Itinerary
@@ -134,7 +214,7 @@
 
                     {{-- Inclusions & Exclusions side by side --}}
                     @if(($tour->inclusions && count($tour->inclusions)) || ($tour->exclusions && count($tour->exclusions)))
-                        <div class="row g-4 mb-4">
+                        <div id="inclusions" class="row g-4 mb-4">
                             @if($tour->inclusions && count($tour->inclusions))
                                 <div class="col-md-6">
                                     <div class="card border-0 shadow-sm rounded-3 h-100">
@@ -177,7 +257,7 @@
                 <div class="col-lg-4">
                     <div class="sticky-top" style="top: 100px;">
                         {{-- Price Card --}}
-                        <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
+                        <div id="pricing" class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
                             <div class="card-header border-0 text-center py-3" style="background:linear-gradient(135deg, #064f68, #0a7a9e);">
                                 @if($tour->starting_price)
                                     <p class="text-white-50 mb-0 small">Starting from</p>
@@ -290,4 +370,62 @@
             </div>
         </section>
     @endif
+
+    {{-- Mobile Sticky CTA Bar --}}
+    <div class="d-lg-none" style="position:fixed;bottom:0;left:0;right:0;z-index:200;background:#fff;border-top:1px solid #e9ecef;padding:10px 16px;box-shadow:0 -2px 12px rgba(0,0,0,0.08);">
+        <div class="d-flex align-items-center justify-content-between gap-2">
+            <div>
+                @if($tour->starting_price)
+                    <div class="text-muted" style="font-size:11px;line-height:1;">Starting from</div>
+                    <div class="fw-bold" style="color:#064f68;font-size:18px;">₹{{ number_format($tour->starting_price) }}</div>
+                @else
+                    <div class="fw-bold" style="color:#064f68;font-size:15px;">Price on Request</div>
+                @endif
+            </div>
+            <div class="d-flex gap-2">
+                <a href="https://wa.me/{{ setting('company_whatsapp', '919876543210') }}?text={{ urlencode('Hi, I am interested in "' . $tour->title . '" package.') }}"
+                   target="_blank" class="btn btn-outline-success fw-semibold px-3" style="border-radius:8px;">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </a>
+                <a href="{{ route('frontend.contact') }}?tour={{ $tour->slug }}"
+                   class="btn fw-semibold text-white px-4" style="background:#064f68;border-radius:8px;">
+                    Get Quote
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @push('styles')
+    <style>
+        .tour-tab-link:hover { border-bottom-color: #064f68 !important; background: rgba(6,79,104,0.04); }
+        html { scroll-behavior: smooth; }
+        .tour-gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .tour-gallery-item { display: block; overflow: hidden; border-radius: 8px; aspect-ratio: 4/3; }
+        .tour-gallery-featured { grid-row: span 2; aspect-ratio: 1/1; }
+        .tour-gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+        .tour-gallery-item:hover img { transform: scale(1.05); }
+        @media (max-width: 767px) { .tour-gallery-grid { grid-template-columns: repeat(2, 1fr); } .tour-gallery-featured { grid-row: span 1; aspect-ratio: 4/3; } }
+        @media (max-width: 575px) { .tour-gallery-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 991px) { body { padding-bottom: 72px; } }
+    </style>
+    @endpush
+
+    @push('scripts')
+    <script>
+    (function() {
+        const bar = document.getElementById('reading-progress');
+        if (bar) {
+            window.addEventListener('scroll', function() {
+                const d = document.documentElement.scrollHeight - window.innerHeight;
+                bar.style.width = (d > 0 ? (window.scrollY / d) * 100 : 0) + '%';
+            }, { passive: true });
+        }
+        const btn = document.querySelector('.go-top-btn');
+        if (btn) {
+            window.addEventListener('scroll', function() { btn.classList.toggle('is-visible', window.scrollY > 300); }, { passive: true });
+            btn.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+        }
+    })();
+    </script>
+    @endpush
 @endsection

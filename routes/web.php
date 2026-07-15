@@ -4,21 +4,40 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\RazorpayController;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+
+// Health Check
+Route::get('/health', function () {
+    try {
+        DB::connection()->getPdo();
+        $db = 'connected';
+    } catch (\Throwable $e) {
+        $db = 'failed';
+    }
+    Cache::put('health_ping', true, 10);
+    return response()->json([
+        'status' => 'ok',
+        'db' => $db,
+        'cache' => Cache::get('health_ping') ? 'ok' : 'failed',
+        'timestamp' => now()->toIso8601String(),
+    ]);
+})->name('health');
 
 // Public Quotation Routes
 Route::prefix('quote')->group(function () {
     Route::get('/{publicId}', [QuotationController::class, 'show'])->name('quotation.public');
     Route::get('/{publicId}/pdf', [QuotationController::class, 'downloadPdf'])->name('quotation.pdf');
-    Route::post('/{publicId}/accept', [QuotationController::class, 'accept'])->name('quotation.accept');
-    Route::post('/{publicId}/reject', [QuotationController::class, 'reject'])->name('quotation.reject');
+    Route::post('/{publicId}/accept', [QuotationController::class, 'accept'])->middleware('throttle:5,1')->name('quotation.accept');
+    Route::post('/{publicId}/reject', [QuotationController::class, 'reject'])->middleware('throttle:5,1')->name('quotation.reject');
 });
 
 // Online Payment Routes (Razorpay — feature-flagged)
 Route::prefix('pay')->group(function () {
     Route::get('/{publicId}', [RazorpayController::class, 'paymentPage'])->name('payment.page');
-    Route::post('/create-order', [RazorpayController::class, 'createOrder'])->name('payment.create-order');
-    Route::post('/verify', [RazorpayController::class, 'verifyPayment'])->name('payment.verify');
+    Route::post('/create-order', [RazorpayController::class, 'createOrder'])->middleware('throttle:20,1')->name('payment.create-order');
+    Route::post('/verify', [RazorpayController::class, 'verifyPayment'])->middleware('throttle:20,1')->name('payment.verify');
 });
 
 // Frontend Routes
@@ -33,7 +52,7 @@ Route::name('frontend.')->group(function () {
 
     // Contact form
     Route::get('/contact-us', [ContactController::class, 'show'])->name('contact');
-    Route::post('/contact-us', [ContactController::class, 'submit'])->name('contact.submit');
+    Route::post('/contact-us', [ContactController::class, 'submit'])->middleware('throttle:10,1')->name('contact.submit');
 
     // CMS-managed pages (dynamic from DB, with known slug fallback)
     Route::get('/about-us', [FrontendController::class, 'page'])->name('about')->defaults('slug', 'about-us');

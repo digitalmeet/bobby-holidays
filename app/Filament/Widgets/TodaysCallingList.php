@@ -17,6 +17,8 @@ class TodaysCallingList extends TableWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    protected static bool $isLazy = true;
+
     public static function canView(): bool
     {
         return auth()->user()?->hasAnyRole(['super_admin', 'sales']) ?? false;

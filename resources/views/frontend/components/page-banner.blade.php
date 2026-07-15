@@ -1,7 +1,7 @@
 <nav class="breadcrumb-strip" aria-label="breadcrumb">
     <div class="container">
         <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ route('frontend.home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('frontend.home') }}"><i class="fa-solid fa-house"></i></a></li>
             @if(!empty($subtitle))
                 <li class="breadcrumb-item">{{ $subtitle }}</li>
             @endif

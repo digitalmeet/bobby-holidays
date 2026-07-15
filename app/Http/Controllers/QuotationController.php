@@ -17,8 +17,11 @@ class QuotationController extends Controller
             ->with(['items' => fn ($q) => $q->orderBy('sort_order'), 'sections'])
             ->firstOrFail();
 
-        // Track view
-        if (!request()->is('admin/*')) {
+        // Track view — deduplicated per session to avoid inflation from refreshes/bots
+        $sessionKey = 'viewed_quote_' . $publicId;
+
+        if (!request()->is('admin/*') && !session()->has($sessionKey)) {
+            session()->put($sessionKey, true);
             $quotation->increment('view_count');
 
             if (!$quotation->viewed_at) {

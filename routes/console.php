@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 // Scheduled tasks
 Schedule::command('quotations:expire')->dailyAt('00:30');
 Schedule::command('enquiries:follow-up-reminders')->dailyAt('09:00');
+Schedule::command('sitemap:generate')->dailyAt('03:00');

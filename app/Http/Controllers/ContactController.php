@@ -32,7 +32,8 @@ class ContactController extends Controller
         // Try to match destination
         $destination = null;
         if (!empty($validated['destination'])) {
-            $destination = Destination::where('name', 'like', "%{$validated['destination']}%")->first();
+            $sanitized = str_replace(['%', '_'], ['\%', '\_'], $validated['destination']);
+            $destination = Destination::where('name', 'like', "%{$sanitized}%")->first();
         }
 
         // Determine source context

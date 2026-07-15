@@ -16,7 +16,7 @@ class StatsOverview extends StatsOverviewWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected string|null $pollingInterval = '30s';
+    protected string|null $pollingInterval = '120s';
 
     protected function getStats(): array
     {
@@ -33,11 +33,12 @@ class StatsOverview extends StatsOverviewWidget
             $pendingBalance = Booking::whereIn('status', ['confirmed', 'partial_paid'])->sum('balance_amount');
             $totalConverted = Enquiry::where('status', 'converted')->where('created_at', '>=', $thisMonth)->count();
             $conversionRate = $thisMonthEnquiries > 0 ? round(($totalConverted / $thisMonthEnquiries) * 100, 1) : 0;
+            $balanceDueCount = Booking::where('balance_amount', '>', 0)->whereNotIn('status', ['cancelled', 'refunded'])->count();
 
             return compact(
                 'newEnquiries', 'thisMonthEnquiries', 'draftQuotations', 'sentQuotations',
                 'activeBookings', 'thisMonthBookings', 'revenueThisMonth', 'pendingBalance',
-                'totalConverted', 'conversionRate'
+                'totalConverted', 'conversionRate', 'balanceDueCount'
             );
         });
 
@@ -68,7 +69,7 @@ class StatsOverview extends StatsOverviewWidget
                 ->color('success'),
 
             Stat::make('Balance Due', '₹' . number_format($stats['pendingBalance'], 0))
-                ->description(Booking::where('balance_amount', '>', 0)->whereNotIn('status', ['cancelled', 'refunded'])->count() . ' bookings')
+                ->description($stats['balanceDueCount'] . ' bookings')
                 ->descriptionIcon('heroicon-o-exclamation-triangle')
                 ->color($stats['pendingBalance'] > 0 ? 'danger' : 'success'),
         ];

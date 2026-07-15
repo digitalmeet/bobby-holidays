@@ -10,6 +10,7 @@ use BackedEnum;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -60,6 +61,20 @@ class CmsPageResource extends Resource
                     TextInput::make('title')->required()->maxLength(255)->columnSpanFull(),
                     TextInput::make('slug')->maxLength(255)->helperText('Auto-generated. Used in URL: /page/{slug}'),
                     Toggle::make('is_published')->label('Published')->default(true),
+                    Select::make('type')
+                        ->options(['service' => 'Service Page'])
+                        ->placeholder('Standard Page')
+                        ->nullable()
+                        ->helperText('Set to "Service Page" to appear under /services/'),
+                    TextInput::make('icon')
+                        ->placeholder('fa-solid fa-suitcase-rolling')
+                        ->helperText('Font Awesome class — only used for service pages.')
+                        ->nullable(),
+                    Textarea::make('short_description')
+                        ->rows(2)
+                        ->helperText('Short summary shown on the services listing — only used for service pages.')
+                        ->columnSpanFull()
+                        ->nullable(),
                     RichEditor::make('content')->columnSpanFull()->extraAttributes(['style' => 'min-height: 400px']),
                 ]),
                 Tab::make('SEO')->icon('heroicon-o-magnifying-glass')->columns(2)->schema([

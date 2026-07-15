@@ -1,2 +1,10 @@
 User-agent: *
-Disallow:
+Allow: /
+
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /livewire/*
+Disallow: /pay/*
+Disallow: /quote/*
+
+Sitemap: https://uniworldholidays.com/sitemap.xml

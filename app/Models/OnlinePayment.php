@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OnlinePayment extends Model
 {
+    use SoftDeletes, LogsActivity;
     protected $fillable = [
         'booking_id',
         'quotation_id',

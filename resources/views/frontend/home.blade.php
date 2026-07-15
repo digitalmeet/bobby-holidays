@@ -58,7 +58,7 @@
             <div class="row align-items-center g-5">
                 <div class="col-lg-6" data-aos="fade-right">
                     <div class="about-media">
-                        <img src="{{ asset('assets/frontend/images/about-agency.svg') }}" alt="UniWorld Holidays planning desk">
+                        <img src="{{ asset('assets/frontend/images/about-agency.svg') }}" alt="UniWorld Holidays planning desk" loading="lazy" decoding="async" width="600" height="450">
                         <div class="experience-badge">
                             <strong>12+</strong>
                             <span>Years of travel craft</span>

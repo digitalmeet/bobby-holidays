@@ -28,6 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->passwordReset()
             ->profile()
             ->spa()
+            ->unsavedChangesAlerts()
             ->topNavigation(false)
             ->spaUrlExceptions(['*/admin/logout'])
             ->brandName('UniWorld Holidays')
@@ -63,6 +64,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                'throttle:60,1',
             ])
             ->authMiddleware([
                 Authenticate::class,

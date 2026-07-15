@@ -1,6 +1,6 @@
 <article class="destination-card">
     <a href="{{ str_starts_with($image, 'http') || str_starts_with($image, '/storage') ? $image : asset($image) }}" class="glightbox" data-gallery="destinations">
-        <img src="{{ str_starts_with($image, 'http') || str_starts_with($image, '/storage') ? $image : asset($image) }}" alt="{{ $title }}">
+        <img src="{{ str_starts_with($image, 'http') || str_starts_with($image, '/storage') ? $image : asset($image) }}" alt="{{ $title }}" loading="lazy" decoding="async" width="400" height="300">
     </a>
     <div class="card-body-pad">
         <div class="destination-meta">

@@ -6,7 +6,7 @@ use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class Booking extends Model
 {
@@ -68,38 +68,34 @@ class Booking extends Model
     protected static function booted(): void
     {
         static::creating(function (Booking $booking) {
-            // Generate booking reference in format: UW-YYYY-000001
-            $year = now()->format('Y');
-            
-            // Note: Using max(id) has limitations in high-concurrency environments
-            // A better production alternative would be:
-            // 1. Use a database sequence
-            // 2. Use a dedicated counter service (Redis)
-            // 3. Use UUID with prefix
-            
-            // For now, we'll use max(id) with year prefix
-            $lastBooking = self::withTrashed()
-                ->where('booking_ref', 'like', "UW-{$year}-%")
-                ->orderBy('id', 'desc')
+            $booking->booking_ref = self::generateBookingRef();
+        });
+    }
+
+    private static function generateBookingRef(): string
+    {
+        $year = (int) now()->format('Y');
+
+        return DB::transaction(function () use ($year) {
+            $sequence = DB::table('booking_sequences')
+                ->where('year', $year)
+                ->lockForUpdate()
                 ->first();
-            
-            if ($lastBooking) {
-                // Extract the numeric part and increment
-                $parts = explode('-', $lastBooking->booking_ref);
-                $lastNumber = (int) end($parts);
-                $nextNumber = $lastNumber + 1;
+
+            if ($sequence) {
+                $nextNumber = $sequence->last_number + 1;
+                DB::table('booking_sequences')
+                    ->where('year', $year)
+                    ->update(['last_number' => $nextNumber]);
             } else {
                 $nextNumber = 1;
+                DB::table('booking_sequences')->insert([
+                    'year' => $year,
+                    'last_number' => $nextNumber,
+                ]);
             }
-            
-            $booking->booking_ref = sprintf("UW-%s-%06d", $year, $nextNumber);
-            
-            // Production alternative recommendation:
-            // Consider implementing a BookingReferenceService that:
-            // 1. Uses Redis atomic increment with year as key
-            // 2. Handles concurrency with locks
-            // 3. Can recover from failures
-            // 4. Prevents duplicates across multiple application instances
+
+            return sprintf('UW-%d-%06d', $year, $nextNumber);
         });
     }
 

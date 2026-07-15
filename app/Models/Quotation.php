@@ -81,16 +81,22 @@ class Quotation extends Model
     protected static function booted(): void
     {
         static::creating(function (Quotation $quotation) {
-            // Generate unique public_id (12 characters)
-            do {
-                $quotation->public_id = strtoupper(Str::random(12));
-            } while (self::where('public_id', $quotation->public_id)->exists());
-
-            // Generate unique access_token (64 characters) - for future secure links
-            do {
-                $quotation->access_token = Str::random(64);
-            } while (self::where('access_token', $quotation->access_token)->exists());
+            $quotation->public_id = self::generateUnique('public_id', fn () => strtoupper(Str::random(12)));
+            $quotation->access_token = self::generateUnique('access_token', fn () => Str::random(64));
         });
+    }
+
+    private static function generateUnique(string $column, callable $generator, int $maxAttempts = 10): string
+    {
+        $attempts = 0;
+        do {
+            if (++$attempts > $maxAttempts) {
+                throw new \RuntimeException("Failed to generate a unique {$column} for Quotation after {$maxAttempts} attempts.");
+            }
+            $value = $generator();
+        } while (self::where($column, $value)->exists());
+
+        return $value;
     }
 
     /**

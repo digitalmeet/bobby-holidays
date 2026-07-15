@@ -16,6 +16,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Cache;
 use UnitEnum;
 
 class EnquiryResource extends Resource
@@ -32,7 +33,9 @@ class EnquiryResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::where('status', 'new')->count() ?: null;
+        return Cache::remember('nav.enquiries.new', 60, fn () =>
+            static::getModel()::where('status', 'new')->count() ?: null
+        );
     }
 
     public static function getNavigationBadgeColor(): ?string
@@ -77,5 +80,10 @@ class EnquiryResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['destination', 'tour', 'assignedTo']);
     }
 }

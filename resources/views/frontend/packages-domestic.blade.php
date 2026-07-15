@@ -13,6 +13,7 @@
                 'title' => 'Domestic holidays for every mood',
                 'text' => 'From hill stations to beaches, heritage walks to wildlife — find your perfect Indian getaway.',
             ])
+            @include('frontend.components.filter-bar')
             <div class="row g-4">
                 @forelse($tours ?? [] as $tour)
                     <div class="col-lg-4 col-md-6">

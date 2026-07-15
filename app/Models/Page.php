@@ -20,6 +20,10 @@ class Page extends Model
      */
     protected $fillable = [
         'slug',
+        'type',
+        'sort_order',
+        'icon',
+        'short_description',
         'title',
         'content',
         'meta_title',
@@ -59,5 +63,10 @@ class Page extends Model
                 $q->whereNull('published_at')
                     ->orWhere('published_at', '<=', now());
             });
+    }
+
+    public function scopeService($query)
+    {
+        return $query->where('type', 'service');
     }
 }

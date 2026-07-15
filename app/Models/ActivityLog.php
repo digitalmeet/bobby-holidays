@@ -8,6 +8,8 @@ class ActivityLog extends Model
 {
     public $timestamps = false;
 
+    private static array $checkedTables = [];
+
     protected $fillable = [
         'record_id',
         'user_id',
@@ -48,8 +50,8 @@ class ActivityLog extends Model
         $module = static::getModuleFromModel($model);
         $table = "{$module}_logs";
 
-        // Check if table exists
-        if (!\Illuminate\Support\Facades\Schema::hasTable($table)) {
+        // Use config-based check instead of Schema::hasTable() for performance
+        if (!in_array($table, config('activity-log.tables', []))) {
             return null;
         }
 

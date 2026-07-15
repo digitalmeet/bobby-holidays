@@ -1,5 +1,5 @@
 <article class="blog-card">
-    <img src="{{ asset($image) }}" alt="{{ $title }}">
+    <img src="{{ asset($image) }}" alt="{{ $title }}" loading="lazy" decoding="async" width="400" height="260">
     <div class="card-body-pad">
         <div class="blog-meta">
             <span><i class="fa-solid fa-calendar"></i> {{ $date }}</span>

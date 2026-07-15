@@ -17,6 +17,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Cache;
 use UnitEnum;
 
 class BookingResource extends Resource
@@ -33,7 +34,9 @@ class BookingResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::whereIn('status', ['confirmed', 'partial_paid'])->count() ?: null;
+        return Cache::remember('nav.bookings.active', 60, fn () =>
+            static::getModel()::whereIn('status', ['confirmed', 'partial_paid'])->count() ?: null
+        );
     }
 
     public static function getNavigationBadgeColor(): ?string
@@ -79,5 +82,10 @@ class BookingResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['tour', 'assignedTo']);
     }
 }

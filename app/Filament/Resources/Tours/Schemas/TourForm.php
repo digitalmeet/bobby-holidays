@@ -186,6 +186,10 @@ class TourForm
                                     ->label('Hero Image')
                                     ->image()
                                     ->directory('tours/hero')
+                                    ->imageResizeMode('cover')
+                                    ->imageCropAspectRatio('16:9')
+                                    ->imageResizeTargetWidth('1200')
+                                    ->imageResizeTargetHeight('675')
                                     ->maxSize(2048)
                                     ->columnSpanFull(),
                                 FileUpload::make('gallery')
@@ -194,6 +198,9 @@ class TourForm
                                     ->multiple()
                                     ->reorderable()
                                     ->directory('tours/gallery')
+                                    ->imageResizeMode('cover')
+                                    ->imageResizeTargetWidth('1200')
+                                    ->imageResizeTargetHeight('800')
                                     ->maxSize(2048)
                                     ->columnSpanFull(),
                             ]),

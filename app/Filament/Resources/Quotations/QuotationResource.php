@@ -16,6 +16,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Cache;
 use UnitEnum;
 
 class QuotationResource extends Resource
@@ -32,7 +33,9 @@ class QuotationResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::where('status', 'draft')->count() ?: null;
+        return Cache::remember('nav.quotations.draft', 60, fn () =>
+            static::getModel()::where('status', 'draft')->count() ?: null
+        );
     }
 
     public static function getGloballySearchableAttributes(): array
