@@ -1,130 +1,216 @@
-# Deploying UniWorld Holidays on Amazon EC2
+# Deploying client sites on EC2 with Cloudflare, Nginx, and Docker
 
-This repository includes a production Docker stack: Laravel/Nginx/PHP-FPM, MySQL 8.4, Redis, queue workers, the scheduler, persistent Docker volumes, health checks, and a deployment script. It does not commit production secrets.
+This production setup runs each client as an isolated Docker Compose project. Host Nginx is the only service listening publicly on ports 80 and 443; each Laravel stack listens only on `127.0.0.1` and has its own database, Redis, uploads, network, secrets, and Compose project name.
 
-## 1. Prepare the EC2 instance
+| Client | Public domain | App port | Compose project | Server directory |
+| --- | --- | ---: | --- | --- |
+| UniWorld Holidays | `uniworld-holidays.meet-shah.online` | `8081` | `uniworld-holidays` | `/opt/clients/uniworld-holidays` |
+| Travel Agency | `travel-agency.meet-shah.online` | `8082` | `travel-agency` | `/opt/clients/travel-agency` |
 
-Use an Ubuntu 24.04 LTS instance with at least 2 GB memory (for example, `t3.small` for a small deployment). Attach an Elastic IP or point your domain at the instance. In the security group, allow:
+Do not reuse `.env.production`, Docker volumes, database passwords, or `APP_KEY` between clients.
 
-- TCP 22 from your administrator IP only.
-- TCP 80 from the internet.
-- TCP 443 from the internet after TLS is configured.
+## 1. EC2 and firewall
 
-Install Docker Engine and the Compose plugin using Docker's current official Ubuntu instructions. Confirm the installation:
-
-```bash
-docker --version
-docker compose version
-```
-
-For an Ubuntu server where Docker is not installed, the distribution packages provide a straightforward starting point:
+Use Ubuntu 24.04 LTS with at least 2 GB RAM and an Elastic IP. In its security group allow TCP `22` only from your administration IP and TCP `80`/`443` from the internet. Do **not** open `3306`, `6379`, `8081`, or `8082`.
 
 ```bash
 sudo apt update
-sudo apt install -y git docker.io docker-compose-v2
-sudo systemctl enable --now docker
+sudo apt install -y git docker.io docker-compose-v2 nginx
+sudo systemctl enable --now docker nginx
 sudo usermod -aG docker "$USER"
 exit
 ```
 
-Reconnect by SSH after the final command so the Docker group membership applies. Confirm with `docker ps` without `sudo`.
+SSH back in, then verify `docker ps`, `docker compose version`, and `sudo nginx -t`.
 
-## 2. Fetch and configure the application
+## 2. Cloudflare DNS and TLS mode
+
+In the Cloudflare DNS dashboard for `meet-shah.online`, create these records pointing to the EC2 Elastic IP:
+
+| Type | Name | Target | Proxy |
+| --- | --- | --- | --- |
+| A | `uniworld-holidays` | `<EC2_ELASTIC_IP>` | Proxied (orange cloud) |
+| A | `travel-agency` | `<EC2_ELASTIC_IP>` | Proxied (orange cloud) |
+
+Set **SSL/TLS → Overview** to **Full (strict)**. Never use Flexible mode: it causes redirect loops and leaves the Cloudflare-to-server connection unencrypted. Enable **Always Use HTTPS** in **SSL/TLS → Edge Certificates**.
+
+## 3. Origin certificate and private key
+
+Cloudflare presents the visitor certificate. Nginx needs an origin certificate for the Cloudflare-to-EC2 connection.
+
+1. In Cloudflare open **SSL/TLS → Origin Server → Create Certificate**.
+2. Include `*.meet-shah.online` and `meet-shah.online`; choose a long validity period.
+3. Save the certificate and private key in a password manager; Cloudflare shows the private key only once.
+4. On EC2, paste them into these exact root-owned files:
 
 ```bash
-cd /opt
-sudo git clone <your-repository-url> bobby-holidays
-sudo chown -R "$USER":"$USER" /opt/bobby-holidays
-cd /opt/bobby-holidays
-cp .env.production.example .env.production
+sudo install -d -m 700 /etc/ssl/cloudflare
+sudo nano /etc/ssl/cloudflare/meet-shah.online.pem
+sudo nano /etc/ssl/cloudflare/meet-shah.online.key
+sudo chown root:root /etc/ssl/cloudflare/meet-shah.online.pem /etc/ssl/cloudflare/meet-shah.online.key
+sudo chmod 644 /etc/ssl/cloudflare/meet-shah.online.pem
+sudo chmod 600 /etc/ssl/cloudflare/meet-shah.online.key
 ```
 
-Edit `.env.production` before deploying. At a minimum, set a unique `APP_KEY`, the final `APP_URL`, strong and unique database/Redis passwords, mail credentials, payment credentials if payments are enabled, and S3 credentials only when S3 storage is used. Keep `APP_ENV=production`, `APP_DEBUG=false`, and `ALLOW_DEMO_SEEDING=false`.
+The `.pem` contains the certificate; `.key` contains the private key. Keep both outside Git and outside Docker images. If a hostname is DNS-only/grey-cloud, use a Let’s Encrypt wildcard certificate with DNS-01 instead and reference `/etc/letsencrypt/live/meet-shah.online/fullchain.pem` and `privkey.pem` in Nginx. Cloudflare Origin Certificates are not browser-trusted for DNS-only sites.
 
-Generate an application key locally with a trusted PHP installation, or after the first image build run:
+## 4. Install each client stack
+
+Create one server directory per client and clone the appropriate repository or branch into it:
+
+```bash
+sudo mkdir -p /opt/clients
+sudo chown "$USER":"$USER" /opt/clients
+git clone <your-repository-url> /opt/clients/uniworld-holidays
+git clone <your-repository-url> /opt/clients/travel-agency
+```
+
+Copy and edit the environment file inside each directory:
+
+```bash
+cd /opt/clients/uniworld-holidays && cp .env.production.example .env.production && nano .env.production
+cd /opt/clients/travel-agency && cp .env.production.example .env.production && nano .env.production
+```
+
+Use these client-specific values, plus unique secure `APP_KEY`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, and `REDIS_PASSWORD` values:
+
+```dotenv
+# /opt/clients/uniworld-holidays/.env.production
+APP_NAME="UniWorld Holidays"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://uniworld-holidays.meet-shah.online
+COMPOSE_PROJECT_NAME=uniworld-holidays
+APP_PORT=127.0.0.1:8081
+DB_DATABASE=uniworld_holidays
+DB_USERNAME=uniworld_user
+```
+
+```dotenv
+# /opt/clients/travel-agency/.env.production
+APP_NAME="Travel Agency"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://travel-agency.meet-shah.online
+COMPOSE_PROJECT_NAME=travel-agency
+APP_PORT=127.0.0.1:8082
+DB_DATABASE=travel_agency
+DB_USERNAME=travel_agency_user
+```
+
+Generate a different application key for each client, then paste the printed result into that client’s `.env.production`:
 
 ```bash
 docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan key:generate --show
 ```
 
-Copy the printed `base64:...` value into `APP_KEY` in `.env.production`. Do not use `key:generate` without `--show` on a production container because the environment file is intentionally mounted as read-only configuration rather than changed from inside the container.
+Keep `ALLOW_DEMO_SEEDING=false` on real production sites. The committed bootstrap SQL imports only when a new MySQL volume is empty; never re-import it into a live client database.
 
-## 3. Database bootstrap and persistence
-
-`database/backups/bobby-holidays-bootstrap.sql` is a committed backup of the configured local database. Both Compose files mount it into MySQL's `/docker-entrypoint-initdb.d/` directory. MySQL imports it automatically **only when `mysql_data` is empty**, before Laravel starts. This gives a new EC2 server the same initial database structure and demo/configuration data.
-
-Do not remove or recreate `mysql_data` on a live server: it contains production records. Normal deployments preserve it. To confirm the first import completed:
+Deploy each stack only from its own directory:
 
 ```bash
-docker compose --env-file .env.production -f docker-compose.production.yml exec mysql \
-  sh -lc 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -e "SHOW DATABASES;"'
+cd /opt/clients/uniworld-holidays && chmod +x deploy-ec2.sh && ./deploy-ec2.sh
+cd /opt/clients/travel-agency && chmod +x deploy-ec2.sh && ./deploy-ec2.sh
 ```
 
-To restore the committed bootstrap backup into a deliberately empty or disposable database, use the mounted file from inside the MySQL container:
+The Compose files intentionally have no `container_name` entries. `COMPOSE_PROJECT_NAME` isolates containers, networks, and volumes, for example `uniworld-holidays_mysql_data` versus `travel-agency_mysql_data`.
+Laravel is configured to trust the local reverse proxy’s `X-Forwarded-*` headers, so the application retains the HTTPS scheme and correct host behind Nginx/Cloudflare.
+
+## 5. Host Nginx configuration
+
+Create `/etc/nginx/sites-available/meet-shah-clients`. This is the host reverse proxy, not the Laravel Nginx configuration inside Docker.
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name uniworld-holidays.meet-shah.online travel-agency.meet-shah.online;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name uniworld-holidays.meet-shah.online;
+    ssl_certificate     /etc/ssl/cloudflare/meet-shah.online.pem;
+    ssl_certificate_key /etc/ssl/cloudflare/meet-shah.online.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    client_max_body_size 25m;
+    location / {
+        proxy_pass http://127.0.0.1:8081;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name travel-agency.meet-shah.online;
+    ssl_certificate     /etc/ssl/cloudflare/meet-shah.online.pem;
+    ssl_certificate_key /etc/ssl/cloudflare/meet-shah.online.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    client_max_body_size 25m;
+    location / {
+        proxy_pass http://127.0.0.1:8082;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+    }
+}
+```
+
+Enable it and remove the default host:
 
 ```bash
-docker compose --env-file .env.production -f docker-compose.production.yml exec -T mysql \
-  sh -lc 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" < /docker-entrypoint-initdb.d/001-bobby-holidays-bootstrap.sql'
+sudo ln -s /etc/nginx/sites-available/meet-shah-clients /etc/nginx/sites-enabled/meet-shah-clients
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
-For real production data, create a fresh backup before every release:
+Verify that app ports are loopback-only and both sites respond:
+
+```bash
+ss -ltn | grep -E ':(443|8081|8082)'
+curl -I https://uniworld-holidays.meet-shah.online/health
+curl -I https://travel-agency.meet-shah.online/health
+```
+
+## 6. Releases, backups, and safety
+
+Release from the relevant client directory only:
+
+```bash
+cd /opt/clients/uniworld-holidays
+git pull --ff-only
+./deploy-ec2.sh
+docker compose --env-file .env.production -f docker-compose.production.yml logs --tail=100 app
+```
+
+Back up before each release, keep backups outside Git, and copy them to encrypted object storage:
 
 ```bash
 mkdir -p backups
 docker compose --env-file .env.production -f docker-compose.production.yml exec -T mysql \
-  sh -lc 'mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --routines --triggers --events bobby_holidays' \
-  > backups/bobby-holidays-$(date +%F-%H%M%S).sql
+  sh -lc 'mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --routines --triggers --events "$MYSQL_DATABASE"' \
+  > backups/uniworld-holidays-$(date +%F-%H%M%S).sql
 ```
 
-## 4. First deployment
+`docker compose down` preserves that client’s volumes. Never use `docker compose down -v` on a live client and never use `docker system prune --volumes` on this multi-client server.
 
-```bash
-chmod +x deploy-ec2.sh
-./deploy-ec2.sh
-```
+## 7. Launch checklist
 
-The script builds the application image, starts MySQL and Redis, runs production migrations, rebuilds Laravel caches, and generates the sitemap. Data and uploaded files persist in named Docker volumes (`mysql_data`, `redis_data`, and `storage_data`) across normal container rebuilds.
-
-Verify the release:
-
-```bash
-docker compose --env-file .env.production -f docker-compose.production.yml ps
-curl -I http://127.0.0.1/health
-docker compose --env-file .env.production -f docker-compose.production.yml logs --tail=100 app
-```
-
-The deployment script validates the environment file and committed bootstrap backup, rebuilds images, starts containers, runs database migrations, optimizes Laravel, and prints service status. It is safe for routine updates because it does not remove Docker volumes.
-
-## 5. Enable HTTPS
-
-The bundled application container serves HTTP on port 80. Put it behind an HTTPS-capable load balancer, Caddy, or Nginx reverse proxy and terminate TLS there. Set `APP_URL` to the final `https://` domain before deployment, then configure your proxy to forward requests to `127.0.0.1:80`. Do not expose MySQL (3306) or Redis (6379) publicly.
-
-## 6. Operations and updates
-
-For a normal update, pull the approved revision and run the same deployment script:
-
-```bash
-git pull --ff-only
-./deploy-ec2.sh
-```
-
-Useful operations:
-
-```bash
-# Container status
-docker compose --env-file .env.production -f docker-compose.production.yml ps
-
-# Follow application and queue-worker logs
-docker compose --env-file .env.production -f docker-compose.production.yml logs -f app
-
-# Run a one-off Laravel command
-docker compose --env-file .env.production -f docker-compose.production.yml exec app php artisan about
-
-# Run migrations manually, if required
-docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan migrate --force
-
-# Stop containers without deleting database/uploads
-docker compose --env-file .env.production -f docker-compose.production.yml down
-```
-
-Never run `docker compose down -v` on a live server unless you intentionally want to erase its MySQL, Redis, and uploaded-file volumes. Copy the `storage_data` volume or move uploads to S3 for disaster recovery. Review logs after each deploy and monitor `/health` from your infrastructure provider.
+- [ ] Both Cloudflare A records are proxied and resolve to the Elastic IP.
+- [ ] Cloudflare is Full (strict), never Flexible.
+- [ ] Certificate and private key are only under `/etc/ssl/cloudflare/` with the documented permissions.
+- [ ] Each client has unique `APP_KEY`, database/Redis passwords, database name, Compose project, and localhost port.
+- [ ] `APP_DEBUG=false`, production mail, payment credentials, health endpoint, contact form, queues, and scheduler are verified for each domain.
+- [ ] A current database backup and storage recovery plan exists per client.

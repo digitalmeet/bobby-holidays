@@ -327,21 +327,22 @@ Reports
 
 ## DEPLOYMENT
 
+Production deployment is Docker-based. The full, maintained procedure is in [DEPLOYMENT_EC2.md](DEPLOYMENT_EC2.md), including two-client isolation, Cloudflare records, Nginx reverse proxying, TLS, backups, and launch checks.
+
+For `meet-shah.online`, use a separate directory and `.env.production` per client:
+
+| Domain | Compose project | Local-only app port |
+|---|---|---:|
+| `uniworld-holidays.meet-shah.online` | `uniworld-holidays` | `127.0.0.1:8081` |
+| `travel-agency.meet-shah.online` | `travel-agency` | `127.0.0.1:8082` |
+
+Each client needs distinct `APP_KEY`, database name and credentials, Redis password, storage volume, and Docker Compose project. Host Nginx terminates HTTPS on `:443` and proxies to the local port; Docker must never expose MySQL, Redis, or the application ports publicly. Use Cloudflare **Full (strict)** with its wildcard Origin Certificate at `/etc/ssl/cloudflare/meet-shah.online.pem` and private key at `/etc/ssl/cloudflare/meet-shah.online.key` (`0600`, root-owned).
+
 ```bash
-# First-time setup
-composer install --no-dev --optimize-autoloader
-php artisan migrate --force
-php artisan db:seed --class=RolesAndPermissionsSeeder
-php artisan db:seed --class=AdminUserSeeder
-php artisan storage:link
-
-# After every deploy
-php artisan optimize
-php artisan filament:optimize
-php artisan sitemap:generate
-
-# Cron (required for scheduled commands)
-* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+# Deploy or update one client only, from its own server directory
+cd /opt/clients/uniworld-holidays
+git pull --ff-only
+./deploy-ec2.sh
 ```
 
 ### Windows (Laragon) Specific
@@ -356,11 +357,13 @@ icacls bootstrap\cache /grant Users:(OI)(CI)(M) /T
 ```env
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=https://your-domain.com
-DB_DATABASE=bobby_holidays
-CACHE_STORE=database
-SESSION_DRIVER=database
-QUEUE_CONNECTION=database
+APP_URL=https://uniworld-holidays.meet-shah.online
+COMPOSE_PROJECT_NAME=uniworld-holidays
+APP_PORT=127.0.0.1:8081
+DB_DATABASE=uniworld_holidays
+CACHE_STORE=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
 ```
 
 ---
@@ -392,5 +395,6 @@ Everything else is complete. All 15 PROMPTS.md fixes, all ISSUES.md items (35 fi
 - [ ] Install spatie/laravel-backup for automated DB backups
 - [ ] Configure production mail driver (for notifications)
 - [ ] Set up cron on production server
-- [ ] SSL certificate + force HTTPS
+- [x] EC2/Cloudflare/Nginx two-client deployment procedure documented
+- [ ] Install Cloudflare origin certificate and force HTTPS on the EC2 host
 - [ ] Set APP_DEBUG=false, APP_ENV=production

@@ -12,6 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Docker receives requests from the host Nginx proxy, which supplies
+        // the original HTTPS scheme through X-Forwarded-* headers.
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'admin.access' => \App\Http\Middleware\AdminPanelAccess::class,
         ]);
