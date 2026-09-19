@@ -268,7 +268,7 @@
                                 @endif
                             </div>
                             <div class="card-body p-4">
-                                <a href="{{ route('frontend.contact') }}?tour={{ $tour->slug }}&destination={{ $tour->destination?->name }}" class="btn d-block mb-2 fw-semibold text-white" style="background:#064f68;">
+                                <a href="{{ route('frontend.contact', ['brief' => encrypted_query(['destination' => $tour->destination?->name])]) }}" class="btn d-block mb-2 fw-semibold text-white" style="background:#064f68;">
                                     <i class="fa-solid fa-paper-plane me-1"></i> Get a Quote
                                 </a>
                                 <a href="https://wa.me/{{ setting('company_whatsapp', '919876543210') }}?text={{ urlencode('Hi, I am interested in "' . $tour->title . '" package. Please share details.') }}" target="_blank" class="btn btn-outline-success d-block fw-semibold">
@@ -393,7 +393,7 @@
                    target="_blank" class="btn btn-outline-success fw-semibold px-3" style="border-radius:8px;">
                     <i class="fa-brands fa-whatsapp"></i>
                 </a>
-                <a href="{{ route('frontend.contact') }}?tour={{ $tour->slug }}"
+                <a href="{{ route('frontend.contact', ['brief' => encrypted_query(['destination' => $tour->destination?->name])]) }}"
                    class="btn fw-semibold text-white px-4" style="background:#064f68;border-radius:8px;">
                     Get Quote
                 </a>

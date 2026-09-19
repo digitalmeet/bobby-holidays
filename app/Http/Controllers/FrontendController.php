@@ -10,6 +10,7 @@ use App\Models\Post;
 use App\Models\Testimonial;
 use App\Models\Tour;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 
 class FrontendController extends Controller
 {
@@ -96,11 +97,12 @@ class FrontendController extends Controller
             ->ordered()
             ->with('destination');
 
-        $query = $this->applyTourFilters($query, $request);
+        $filters = $this->decodeTourFilters($request);
+        $query = $this->applyTourFilters($query, $filters);
 
         $tours = $query->paginate(12)->withQueryString();
 
-        return view('frontend.packages-domestic', compact('tours'));
+        return view('frontend.packages-domestic', compact('tours', 'filters'));
     }
 
     public function toursInternational(Request $request)
@@ -111,17 +113,33 @@ class FrontendController extends Controller
             ->ordered()
             ->with('destination');
 
-        $query = $this->applyTourFilters($query, $request);
+        $filters = $this->decodeTourFilters($request);
+        $query = $this->applyTourFilters($query, $filters);
 
         $tours = $query->paginate(12)->withQueryString();
 
-        return view('frontend.packages-international', compact('tours'));
+        return view('frontend.packages-international', compact('tours', 'filters'));
     }
 
-    private function applyTourFilters($query, Request $request)
+    public function filterTours(Request $request)
     {
-        if ($request->filled('duration')) {
-            match ($request->duration) {
+        $filters = $request->validate([
+            'market' => 'required|in:domestic,international',
+            'duration' => 'nullable|in:1-3,4-6,7+',
+            'budget' => 'nullable|in:under15,15-30,30-60,60plus',
+            'category' => 'nullable|in:family,couple,group,solo,adventure',
+        ]);
+
+        $route = $filters['market'] === 'domestic' ? 'frontend.domestic' : 'frontend.international';
+        unset($filters['market']);
+
+        return redirect()->route($route, ['filters' => encrypted_query($filters)]);
+    }
+
+    private function applyTourFilters($query, array $filters)
+    {
+        if (!empty($filters['duration'])) {
+            match ($filters['duration']) {
                 '1-3'  => $query->where('duration_days', '<=', 3),
                 '4-6'  => $query->whereBetween('duration_days', [4, 6]),
                 '7+'   => $query->where('duration_days', '>=', 7),
@@ -129,8 +147,8 @@ class FrontendController extends Controller
             };
         }
 
-        if ($request->filled('budget')) {
-            match ($request->budget) {
+        if (!empty($filters['budget'])) {
+            match ($filters['budget']) {
                 'under15'  => $query->where('starting_price', '<', 15000),
                 '15-30'    => $query->whereBetween('starting_price', [15000, 30000]),
                 '30-60'    => $query->whereBetween('starting_price', [30000, 60000]),
@@ -139,11 +157,26 @@ class FrontendController extends Controller
             };
         }
 
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
+        if (!empty($filters['category'])) {
+            $query->where('category', $filters['category']);
         }
 
         return $query;
+    }
+
+    private function decodeTourFilters(Request $request): array
+    {
+        if (!$request->filled('filters')) {
+            return [];
+        }
+
+        try {
+            $filters = json_decode(Crypt::decryptString((string) $request->query('filters')), true, 512, JSON_THROW_ON_ERROR);
+
+            return array_intersect_key($filters, array_flip(['duration', 'budget', 'category']));
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /**

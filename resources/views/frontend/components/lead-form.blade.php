@@ -6,7 +6,8 @@
                 <h2>{{ $title ?? 'Discuss your holiday with a destination specialist' }}</h2>
                 <p>{{ $text ?? 'Tell us what matters to you. We will recommend a suitable route, stay category and experience mix with transparent options.' }}</p>
             </div>
-            <form class="lead-capture-form" action="{{ route('frontend.contact') }}" method="get">
+            <form class="lead-capture-form" action="{{ route('frontend.plan-trip') }}" method="post">
+                @csrf
                 <div class="row g-3">
                     <div class="col-lg-3 col-md-6">
                         <label class="form-label" for="{{ $id ?? 'lead' }}_name">Name</label>

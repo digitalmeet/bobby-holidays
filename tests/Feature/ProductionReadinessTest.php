@@ -64,16 +64,46 @@ class ProductionReadinessTest extends TestCase
 
     public function test_search_funnel_preserves_trip_preferences_on_the_contact_form(): void
     {
-        $this->get(route('frontend.contact', [
+        $brief = [
             'destination' => 'Kerala',
             'adults' => 4,
             'budget_range' => '₹50,000 - ₹1,00,000',
-        ]))
+        ];
+
+        $response = $this->post(route('frontend.plan-trip'), $brief);
+        $response->assertRedirect();
+        $location = $response->headers->get('Location');
+        $this->assertStringContainsString('brief=', $location);
+        $this->assertStringNotContainsString('destination=Kerala', $location);
+        $this->assertStringNotContainsString('budget_range=', $location);
+
+        $this->get(route('frontend.contact', ['brief' => encrypted_query($brief)]))
             ->assertOk()
             ->assertSee('value="Kerala"', false)
             ->assertSee('value="4"', false)
             ->assertSee('value="₹50,000 - ₹1,00,000" selected', false)
             ->assertDontSee('id="stickyEnquiryForm"', false);
+    }
+
+    public function test_package_filters_are_encrypted_and_tampered_filter_links_fail_safely(): void
+    {
+        $response = $this->post(route('frontend.tour.filters'), [
+            'market' => 'domestic',
+            'duration' => '4-6',
+            'budget' => '15-30',
+            'category' => 'family',
+        ]);
+
+        $response->assertRedirect();
+        $location = $response->headers->get('Location');
+        $this->assertStringContainsString('filters=', $location);
+        $this->assertStringNotContainsString('duration=4-6', $location);
+        $this->assertStringNotContainsString('budget=15-30', $location);
+        $this->assertStringNotContainsString('category=family', $location);
+
+        $this->get(route('frontend.domestic', ['filters' => 'altered-value']))
+            ->assertOk()
+            ->assertSee('Any Duration', false);
     }
 
     public function test_health_check_reports_dependency_status_without_caching(): void

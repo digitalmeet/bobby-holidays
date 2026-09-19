@@ -7,12 +7,40 @@ use App\Models\Enquiry;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 
 class ContactController extends Controller
 {
-    public function show()
+    public function show(Request $request)
     {
-        return view('frontend.contact');
+        $brief = [];
+
+        if ($request->filled('brief')) {
+            try {
+                $brief = json_decode(Crypt::decryptString((string) $request->query('brief')), true, 512, JSON_THROW_ON_ERROR);
+                $brief = array_intersect_key($brief, array_flip(['name', 'email', 'phone', 'destination', 'travel_date', 'adults', 'budget_range']));
+            } catch (\Throwable) {
+                // A stale or altered link should simply open a blank contact form.
+            }
+        }
+
+        return view('frontend.contact', compact('brief'));
+    }
+
+    /** Securely hand off the homepage trip planner to the contact form. */
+    public function planTrip(Request $request)
+    {
+        $brief = $request->validate([
+            'name' => 'nullable|string|min:2|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|min:10|max:20',
+            'destination' => 'nullable|string|max:255',
+            'travel_date' => 'nullable|date',
+            'adults' => 'nullable|integer|min:1|max:50',
+            'budget_range' => 'nullable|string|max:100',
+        ]);
+
+        return redirect()->route('frontend.contact', ['brief' => encrypted_query($brief)]);
     }
 
     public function submit(Request $request)

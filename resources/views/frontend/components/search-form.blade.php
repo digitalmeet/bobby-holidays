@@ -1,6 +1,7 @@
 <section id="holiday-search" class="search-panel">
     <div class="container">
-        <form class="search-box" action="{{ route('frontend.contact') }}" method="get" data-animate="fade-up">
+        <form class="search-box" action="{{ route('frontend.plan-trip') }}" method="post" data-animate="fade-up">
+            @csrf
             <div class="row g-3 align-items-end">
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label" for="destination">Destination</label>

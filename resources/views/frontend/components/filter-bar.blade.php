@@ -1,8 +1,12 @@
 @php
-    $activeFilters = collect(['duration', 'budget', 'category'])->filter(fn($k) => request()->filled($k))->count();
+    $filters = $filters ?? [];
+    $activeFilters = collect(['duration', 'budget', 'category'])->filter(fn($key) => filled($filters[$key] ?? null))->count();
+    $market = request()->routeIs('frontend.international') ? 'international' : 'domestic';
 @endphp
 
-<form method="GET" action="" class="mb-5">
+<form method="POST" action="{{ route('frontend.tour.filters') }}" class="mb-5">
+    @csrf
+    <input type="hidden" name="market" value="{{ $market }}">
     <div class="card border-0 shadow-sm rounded-3">
         <div class="card-body p-3 p-md-4">
             <div class="row g-3 align-items-end">
@@ -10,19 +14,19 @@
                     <label class="form-label small fw-semibold text-muted mb-1">Duration</label>
                     <select name="duration" class="form-select form-select-sm" style="border-color:#dee2e6;">
                         <option value="">Any Duration</option>
-                        <option value="1-3" {{ request('duration') === '1-3' ? 'selected' : '' }}>1 – 3 Days</option>
-                        <option value="4-6" {{ request('duration') === '4-6' ? 'selected' : '' }}>4 – 6 Days</option>
-                        <option value="7+" {{ request('duration') === '7+' ? 'selected' : '' }}>7+ Days</option>
+                        <option value="1-3" @selected(($filters['duration'] ?? '') === '1-3')>1 – 3 Days</option>
+                        <option value="4-6" @selected(($filters['duration'] ?? '') === '4-6')>4 – 6 Days</option>
+                        <option value="7+" @selected(($filters['duration'] ?? '') === '7+')>7+ Days</option>
                     </select>
                 </div>
                 <div class="col-6 col-md-3">
                     <label class="form-label small fw-semibold text-muted mb-1">Budget</label>
                     <select name="budget" class="form-select form-select-sm" style="border-color:#dee2e6;">
                         <option value="">Any Budget</option>
-                        <option value="under15" {{ request('budget') === 'under15' ? 'selected' : '' }}>Under ₹15,000</option>
-                        <option value="15-30"   {{ request('budget') === '15-30'   ? 'selected' : '' }}>₹15,000 – ₹30,000</option>
-                        <option value="30-60"   {{ request('budget') === '30-60'   ? 'selected' : '' }}>₹30,000 – ₹60,000</option>
-                        <option value="60plus"  {{ request('budget') === '60plus'  ? 'selected' : '' }}>₹60,000+</option>
+                        <option value="under15" @selected(($filters['budget'] ?? '') === 'under15')>Under ₹15,000</option>
+                        <option value="15-30" @selected(($filters['budget'] ?? '') === '15-30')>₹15,000 – ₹30,000</option>
+                        <option value="30-60" @selected(($filters['budget'] ?? '') === '30-60')>₹30,000 – ₹60,000</option>
+                        <option value="60plus" @selected(($filters['budget'] ?? '') === '60plus')>₹60,000+</option>
                     </select>
                 </div>
                 <div class="col-6 col-md-3">
@@ -30,7 +34,7 @@
                     <select name="category" class="form-select form-select-sm" style="border-color:#dee2e6;">
                         <option value="">Any Category</option>
                         @foreach(['family','couple','group','solo','adventure'] as $cat)
-                            <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+                            <option value="{{ $cat }}" @selected(($filters['category'] ?? '') === $cat)>{{ ucfirst($cat) }}</option>
                         @endforeach
                     </select>
                 </div>

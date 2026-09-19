@@ -59,10 +59,12 @@ Route::name('frontend.')->group(function () {
     Route::get('/destinations/{slug}', [FrontendController::class, 'destinationShow'])->name('destination.show');
     Route::get('/domestic-packages', [FrontendController::class, 'toursDomestic'])->name('domestic');
     Route::get('/international-packages', [FrontendController::class, 'toursInternational'])->name('international');
+    Route::post('/package-filters', [FrontendController::class, 'filterTours'])->middleware('throttle:30,1')->name('tour.filters');
     Route::get('/packages/{slug}', [FrontendController::class, 'tourShow'])->name('tour.show');
 
     // Contact form
     Route::get('/contact-us', [ContactController::class, 'show'])->name('contact');
+    Route::post('/plan-trip', [ContactController::class, 'planTrip'])->middleware('throttle:20,1')->name('plan-trip');
     Route::post('/contact-us', [ContactController::class, 'submit'])->middleware('throttle:10,1')->name('contact.submit');
 
     // CMS-managed pages (dynamic from DB, with known slug fallback)

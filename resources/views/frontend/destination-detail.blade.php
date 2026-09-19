@@ -41,7 +41,7 @@
                         <span class="text-white small fw-medium">{{ $destination->continent }}</span>
                     </div>
                     @endif
-                    <a href="{{ route('frontend.contact') }}?destination={{ $destination->name }}"
+                    <a href="{{ route('frontend.contact', ['brief' => encrypted_query(['destination' => $destination->name])]) }}"
                        class="btn fw-semibold px-4" style="background:#fff;color:#064f68;border-radius:8px;">
                         <i class="fa-solid fa-paper-plane me-1"></i> Get Custom Quote
                     </a>

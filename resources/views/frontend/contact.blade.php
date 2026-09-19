@@ -4,6 +4,7 @@
 @section('meta_description', 'Speak with a UniWorld Holidays travel consultant about your destination, dates, traveller needs and preferred budget for a personalised itinerary proposal.')
 
 @section('content')
+    @php($brief = $brief ?? [])
     @include('frontend.components.page-banner', ['title' => 'Plan Your Holiday', 'subtitle' => 'Start with a conversation about the journey you have in mind'])
 
     <section class="section-padding">
@@ -73,30 +74,30 @@
                         @csrf
                         <div class="col-md-6">
                             <label class="form-label" for="name">Full Name <span class="text-danger">*</span></label>
-                            <input class="form-control" id="name" name="name" type="text" placeholder="Your name" value="{{ old('name', request('name')) }}" autocomplete="name" required minlength="2" maxlength="255">
+                            <input class="form-control" id="name" name="name" type="text" placeholder="Your name" value="{{ old('name', $brief['name'] ?? '') }}" autocomplete="name" required minlength="2" maxlength="255">
                             <div class="invalid-feedback">Please enter your name.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="phone">Phone Number <span class="text-danger">*</span></label>
-                            <input class="form-control" id="phone" name="phone" type="tel" placeholder="Your phone" value="{{ old('phone', request('phone')) }}" autocomplete="tel" required minlength="10" maxlength="20" pattern="[0-9+\s\-]{10,20}">
+                            <input class="form-control" id="phone" name="phone" type="tel" placeholder="Your phone" value="{{ old('phone', $brief['phone'] ?? '') }}" autocomplete="tel" required minlength="10" maxlength="20" pattern="[0-9+\s\-]{10,20}">
                             <div class="invalid-feedback">Please enter a valid phone number (min 10 digits).</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="email">Email</label>
-                            <input class="form-control" id="email" name="email" type="email" placeholder="Your email" value="{{ old('email', request('email')) }}" autocomplete="email" maxlength="255">
+                            <input class="form-control" id="email" name="email" type="email" placeholder="Your email" value="{{ old('email', $brief['email'] ?? '') }}" autocomplete="email" maxlength="255">
                             <div class="invalid-feedback">Please enter a valid email address.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="travel_date">Travel Date</label>
-                            <input class="form-control date-picker" id="travel_date" name="travel_date" type="text" placeholder="Select date" value="{{ old('travel_date', request('travel_date')) }}" autocomplete="off">
+                            <input class="form-control date-picker" id="travel_date" name="travel_date" type="text" placeholder="Select date" value="{{ old('travel_date', $brief['travel_date'] ?? '') }}" autocomplete="off">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="destination">Destination</label>
-                            <input class="form-control" id="destination" name="destination" type="text" placeholder="Where to?" value="{{ old('destination', request('destination')) }}">
+                            <input class="form-control" id="destination" name="destination" type="text" placeholder="Where to?" value="{{ old('destination', $brief['destination'] ?? '') }}">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="adults">Adults</label>
-                            <input class="form-control" id="adults" name="adults" type="number" min="1" max="50" value="{{ old('adults', request('adults', 2)) }}">
+                            <input class="form-control" id="adults" name="adults" type="number" min="1" max="50" value="{{ old('adults', $brief['adults'] ?? 2) }}">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="children">Children</label>
@@ -107,7 +108,7 @@
                             <select class="form-select" id="budget_range" name="budget_range">
                                 <option value="">Select a budget (optional)</option>
                                 @foreach(['Under ₹50,000', '₹50,000 - ₹1,00,000', 'Above ₹1,00,000'] as $budget)
-                                    <option value="{{ $budget }}" @selected(old('budget_range', request('budget_range')) === $budget)>{{ $budget }}</option>
+                                    <option value="{{ $budget }}" @selected(old('budget_range', $brief['budget_range'] ?? '') === $budget)>{{ $budget }}</option>
                                 @endforeach
                             </select>
                         </div>

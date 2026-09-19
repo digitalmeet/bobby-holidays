@@ -59,7 +59,8 @@
                     <li><a href="mailto:{{ setting('company_email', 'hello@uniworldholidays.com') }}">{{ setting('company_email', 'hello@uniworldholidays.com') }}</a></li>
                     <li>{{ setting('company_city', 'Ahmedabad, Gujarat, India') }}</li>
                 </ul>
-                <form class="mt-3" action="{{ route('frontend.contact') }}" method="get">
+                <form class="mt-3" action="{{ route('frontend.plan-trip') }}" method="post">
+                    @csrf
                     <div class="input-group">
                         <input type="email" name="email" class="form-control" placeholder="Your email" aria-label="Email address">
                         <button class="btn btn-brand" type="submit" aria-label="Start a travel enquiry"><i class="fa-solid fa-paper-plane"></i></button>
