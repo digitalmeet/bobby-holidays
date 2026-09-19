@@ -29,20 +29,20 @@ class FollowUpsRelationManager extends RelationManager
         return $schema->components([
             Select::make('type')
                 ->options([
-                    'call' => '📞 Phone Call',
-                    'whatsapp' => '💬 WhatsApp',
-                    'email' => '📧 Email',
-                    'meeting' => '🤝 Meeting',
-                    'note' => '📝 Note',
+                    'call' => 'Phone Call',
+                    'whatsapp' => 'WhatsApp',
+                    'email' => 'Email',
+                    'meeting' => 'Meeting',
+                    'note' => 'Note',
                 ])
                 ->required(),
             Select::make('status')
                 ->options([
-                    'completed' => '✅ Completed',
-                    'no_answer' => '📵 No Answer',
-                    'busy' => '🔴 Busy',
-                    'rescheduled' => '🔄 Rescheduled',
-                    'callback' => '📲 Callback',
+                    'completed' => 'Completed',
+                    'no_answer' => 'No Answer',
+                    'busy' => 'Busy',
+                    'rescheduled' => 'Rescheduled',
+                    'callback' => 'Callback',
                 ])
                 ->required(),
             Textarea::make('notes')->rows(3)->placeholder('Discussion, outcome, action items...')->columnSpanFull(),
@@ -61,11 +61,11 @@ class FollowUpsRelationManager extends RelationManager
                 TextColumn::make('type')
                     ->badge()
                     ->formatStateUsing(fn (string $state) => match ($state) {
-                        'call' => '📞 Call',
-                        'whatsapp' => '💬 WA',
-                        'email' => '📧 Email',
-                        'meeting' => '🤝 Meet',
-                        'note' => '📝 Note',
+                        'call' => 'Call',
+                        'whatsapp' => 'WhatsApp',
+                        'email' => 'Email',
+                        'meeting' => 'Meeting',
+                        'note' => 'Note',
                         default => $state,
                     })
                     ->color('gray'),

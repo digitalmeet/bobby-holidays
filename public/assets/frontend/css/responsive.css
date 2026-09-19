@@ -1,3 +1,23 @@
+@media (min-width: 992px) {
+    .equal-card-grid--2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .equal-card-grid--3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .equal-card-grid--4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 576px) and (max-width: 991.98px) {
+    .equal-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media (max-width: 1199.98px) {
     .brand-logo {
         height: 78px;
@@ -21,11 +41,11 @@
 
 @media (max-width: 991.98px) {
     .section-padding {
-        padding: 72px 0;
+        padding: 56px 0;
     }
 
     .package-detail-section {
-        padding-bottom: 72px;
+        padding-bottom: 56px;
     }
 
     .section-title {
@@ -86,7 +106,7 @@
     }
 
     .hero-content {
-        padding-bottom: 132px;
+        padding-bottom: 102px;
     }
 
     .hero-title {
@@ -110,11 +130,11 @@
 
 @media (max-width: 767.98px) {
     .section-padding {
-        padding: 58px 0;
+        padding: 44px 0;
     }
 
     .section-padding-sm {
-        padding: 48px 0;
+        padding: 38px 0;
     }
 
     .section-title {
@@ -136,7 +156,11 @@
 
     .hero-stats {
         grid-template-columns: 1fr;
+        max-width: 430px;
+        margin-bottom: 22px;
     }
+
+    .hero-scroll-cue { bottom: 24px; }
 
     .search-box {
         padding: 18px;
@@ -147,8 +171,7 @@
     }
 
     .sticky-enquiry-bar {
-        position: sticky;
-        top: 86px;
+        display: none;
     }
 
     .sticky-enquiry-fields {
@@ -200,12 +223,18 @@
         height: 210px;
     }
 
+    .destination-card > .glightbox,
+    .package-card-media {
+        flex-basis: 210px;
+        height: 210px;
+    }
+
     .page-banner {
-        padding: 88px 0;
+        padding: 60px 0;
     }
 
     .page-banner h1 {
-        font-size: 39px;
+        font-size: 34px;
     }
 
     .site-footer {
@@ -261,26 +290,53 @@
 
     .go-top-btn {
         right: 18px;
-        bottom: 18px;
+        bottom: 72px;
         width: 44px;
         height: 44px;
     }
 
     .floating-quote-btn {
-        right: 72px;
+        right: 18px;
         bottom: 18px;
         min-height: 44px;
     }
 }
 
 @media (max-width: 575.98px) {
+    .section-padding {
+        padding: 36px 0;
+    }
+
+    .section-padding-sm {
+        padding: 32px 0;
+    }
+
+    .travel-discovery-links {
+        align-items: stretch;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-bottom: 22px;
+    }
+
+    .travel-discovery-label {
+        grid-column: 1 / -1;
+        justify-content: center;
+    }
+
+    .travel-discovery-links a {
+        justify-content: center;
+        text-align: center;
+    }
+
+    .related-tour-grid .package-card-media,
+    .related-tour-grid .package-card-media img {
+        height: 225px;
+        flex-basis: 225px;
+    }
+
     .brand-logo {
         height: 66px;
         max-width: 174px;
-    }
-
-    .sticky-enquiry-bar {
-        top: 78px;
     }
 
     .header-call,
@@ -406,13 +462,13 @@
 
     .go-top-btn {
         right: 14px;
-        bottom: 14px;
+        bottom: 66px;
         width: 42px;
         height: 42px;
     }
 
     .floating-quote-btn {
-        right: 64px;
+        right: 14px;
         bottom: 14px;
         min-height: 42px;
         padding: 9px 13px;

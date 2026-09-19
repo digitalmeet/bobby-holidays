@@ -55,6 +55,12 @@ class ActivityLog extends Model
             return null;
         }
 
+        $hidden = method_exists($model, 'activityLogHiddenAttributes')
+            ? $model->activityLogHiddenAttributes()
+            : [];
+        $oldValues = static::redact($oldValues, $hidden);
+        $newValues = static::redact($newValues, $hidden);
+
         $log = new static;
         $log->setTable($table);
         $log->fill([
@@ -70,6 +76,21 @@ class ActivityLog extends Model
         $log->save();
 
         return $log;
+    }
+
+    private static function redact(?array $values, array $hidden): ?array
+    {
+        if ($values === null) {
+            return null;
+        }
+
+        foreach ($hidden as $attribute) {
+            if (array_key_exists($attribute, $values)) {
+                $values[$attribute] = '[REDACTED]';
+            }
+        }
+
+        return $values;
     }
 
     /**

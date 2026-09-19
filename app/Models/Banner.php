@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Banner extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -23,6 +24,9 @@ class Banner extends Model
         'cta_url',
         'image',
         'mobile_image',
+        'media_type',
+        'video_path',
+        'video_poster',
         'position',
         'sort_order',
         'is_active',

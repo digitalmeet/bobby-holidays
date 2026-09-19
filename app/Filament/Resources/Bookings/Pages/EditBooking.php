@@ -4,8 +4,6 @@ namespace App\Filament\Resources\Bookings\Pages;
 
 use App\Filament\Resources\Bookings\BookingResource;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\RestoreAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
@@ -80,8 +78,6 @@ class EditBooking extends EditRecord
                 ->openUrlInNewTab()
                 ->visible(fn () => !empty($this->record->client_phone)),
 
-            DeleteAction::make(),
-            RestoreAction::make(),
         ];
     }
 

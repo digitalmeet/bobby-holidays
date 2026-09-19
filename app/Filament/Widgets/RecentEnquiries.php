@@ -18,6 +18,11 @@ class RecentEnquiries extends TableWidget
 
     protected static bool $isLazy = true;
 
+    public static function canView(): bool
+    {
+        return auth()->user()?->can('viewAny', Enquiry::class) ?? false;
+    }
+
     public function table(Table $table): Table
     {
         return $table

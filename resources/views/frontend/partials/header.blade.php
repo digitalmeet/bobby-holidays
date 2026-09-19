@@ -15,7 +15,7 @@
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="{{ route('frontend.home') }}" aria-label="UniWorld Holidays home">
-                <img class="brand-logo" src="{{ asset('assets/frontend/images/uniworld-logo-cropped.png') }}" alt="UniWorld Holidays" fetchpriority="high" width="180" height="48">
+                <img class="brand-logo" src="{{ media_url(setting('site_logo'), 'assets/frontend/images/uniworld-logo-cropped.png') }}" alt="{{ setting('company_name', 'UniWorld Holidays') }}" fetchpriority="high" width="180" height="48">
             </a>
 
             <ul class="navbar-nav main-nav ms-auto me-3">
@@ -32,7 +32,7 @@
                 <a class="header-call" href="tel:{{ setting('company_phone', '+91 98765 43210') }}" aria-label="Call UniWorld Holidays"><i class="fa-solid fa-phone"></i></a>
                 <a class="header-whatsapp" href="https://wa.me/{{ setting('company_whatsapp', '919876543210') }}" aria-label="WhatsApp UniWorld Holidays"><i class="fa-brands fa-whatsapp"></i></a>
                 <a class="btn-brand d-none d-xl-inline-flex" href="{{ route('frontend.contact') }}" style="min-height:42px;padding:0 18px;font-size:13px;"><i class="fa-solid fa-paper-plane"></i> Enquire Now</a>
-                <button class="mobile-menu-toggle d-lg-none" type="button" aria-label="Open mobile menu">
+                <button class="mobile-menu-toggle d-lg-none" type="button" aria-label="Open mobile menu" aria-controls="mobileNavigation" aria-expanded="false">
                     <i class="fa-solid fa-bars"></i>
                 </button>
             </div>

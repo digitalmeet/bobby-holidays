@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,7 +11,7 @@ use Spatie\Sluggable\SlugOptions;
 
 class Destination extends Model
 {
-    use HasFactory, SoftDeletes, HasSlug;
+    use HasFactory, SoftDeletes, HasSlug, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +22,8 @@ class Destination extends Model
         'slug',
         'name',
         'country',
+        'state',
+        'city',
         'continent',
         'short_description',
         'description',

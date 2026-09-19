@@ -5,8 +5,6 @@ namespace App\Filament\Resources\Enquiries\Pages;
 use App\Filament\Resources\Enquiries\EnquiryResource;
 use App\Filament\Resources\Quotations\QuotationResource;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditEnquiry extends EditRecord
@@ -45,8 +43,6 @@ class EditEnquiry extends EditRecord
                     $this->record->update(['status' => 'lost']);
                     $this->refreshFormData(['status']);
                 }),
-            DeleteAction::make(),
-            RestoreAction::make(),
         ];
     }
 }

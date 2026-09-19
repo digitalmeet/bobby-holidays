@@ -3,7 +3,7 @@
 @section('title', ($post->meta_title ?? $post->title) . ' — UniWorld Holidays Blog')
 @section('meta_description', $post->meta_description ?? $post->excerpt ?? '')
 @section('og_image_meta')
-@if($post->featured_image)<meta property="og:image" content="{{ asset('storage/' . $post->featured_image) }}">@endif
+@if($post->featured_image)<meta property="og:image" content="{{ media_url($post->featured_image) }}">@endif
 @endsection
 
 @push('head')
@@ -12,14 +12,14 @@
 </style>
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
+    "@@context": "https://schema.org",
     "@type": "Article",
     "headline": "{{ $post->title }}",
     "description": "{{ str($post->excerpt ?? $post->content ?? '')->stripTags()->limit(160) }}",
     "datePublished": "{{ ($post->published_at ?? $post->created_at)->toW3cString() }}",
     "dateModified": "{{ $post->updated_at->toW3cString() }}",
     @if($post->featured_image)
-    "image": "{{ asset('storage/' . $post->featured_image) }}",
+    "image": "{{ media_url($post->featured_image) }}",
     @endif
     "author": {
         "@type": "Person",
@@ -34,7 +34,7 @@
 </script>
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
+    "@@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ url('/') }}"},
@@ -50,7 +50,7 @@
 
     {{-- Hero --}}
     @if($post->featured_image)
-        <div class="blog-hero" style="background-image:url('{{ asset('storage/' . $post->featured_image) }}');">
+        <div class="blog-hero" style="background-image:url('{{ media_url($post->featured_image) }}');">
             <div class="blog-hero-overlay"></div>
             <div class="blog-hero-content">
                 <div class="container">
@@ -190,11 +190,11 @@
         <section class="section-padding bg-soft">
             <div class="container">
                 @include('frontend.components.section-heading', ['kicker' => 'Related Posts', 'title' => 'More from this category', 'text' => ''])
-                <div class="row g-4">
+                <div class="row g-4 equal-card-grid equal-card-grid--3">
                     @foreach($relatedPosts as $related)
                         <div class="col-lg-4 col-md-6">
                             @include('frontend.components.blog-card', [
-                                'image' => $related->featured_image ? asset('storage/' . $related->featured_image) : asset('assets/frontend/images/blog-family-trip.svg'),
+                                'image' => media_url($related->featured_image, 'assets/frontend/images/demo/destination-kashmir.webp'),
                                 'title' => $related->title,
                                 'date' => $related->published_at?->format('d M Y') ?? '',
                                 'category' => ucfirst($related->category ?? ''),

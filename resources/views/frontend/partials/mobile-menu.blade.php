@@ -1,5 +1,5 @@
-<div class="mobile-menu-backdrop"></div>
-<aside class="mobile-menu" aria-label="Mobile navigation">
+<div class="mobile-menu-backdrop" aria-hidden="true"></div>
+<aside class="mobile-menu" id="mobileNavigation" aria-label="Mobile navigation" aria-hidden="true" inert>
     <div class="mobile-menu-head">
         <a class="navbar-brand" href="{{ route('frontend.home') }}">
             <img class="brand-logo" src="{{ asset('assets/frontend/images/uniworld-logo-cropped.png') }}" alt="UniWorld Holidays">

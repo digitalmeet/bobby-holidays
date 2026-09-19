@@ -24,6 +24,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -89,11 +90,14 @@ class PostResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->defaultSort('created_at', 'desc')->columns([
-            ImageColumn::make('featured_image')->circular()->size(40),
+            ImageColumn::make('featured_image')
+                ->defaultImageUrl(asset('assets/frontend/images/image-placeholder.svg'))
+                ->circular()
+                ->size(40),
             TextColumn::make('title')->searchable()->sortable()->limit(40),
             TextColumn::make('category')->badge()->color('gray'),
             TextColumn::make('author.name')->label('Author')->placeholder('—'),
-            IconColumn::make('is_published')->boolean()->label('Published'),
+            ToggleColumn::make('is_published')->label('Active')->tooltip('Show or hide this post on the website.'),
             TextColumn::make('published_at')->date()->placeholder('Draft')->sortable(),
             TextColumn::make('created_at')->since()->sortable(),
         ])->filters([

@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Enquiries\Schemas;
 
 use App\Models\User;
+use App\Models\Destination;
+use App\Models\Tour;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Placeholder;
@@ -36,6 +38,10 @@ class EnquiryForm
                             ->maxLength(255),
                         TextInput::make('country')
                             ->maxLength(100),
+                        Textarea::make('address')
+                            ->label('Full Address')
+                            ->rows(3)
+                            ->columnSpanFull(),
                     ]),
 
                 Section::make('Travel Requirements')
@@ -45,16 +51,30 @@ class EnquiryForm
                     ->schema([
                         Select::make('destination_id')
                             ->label('Destination')
-                            ->relationship('destination', 'name')
+                            ->options(fn () => Destination::query()->active()->ordered()->pluck('name', 'id')->all() + ['other' => 'Other / not listed'])
                             ->searchable()
                             ->preload()
-                            ->placeholder('Any destination'),
+                            ->live()
+                            ->dehydrateStateUsing(fn ($state) => $state === 'other' ? null : $state)
+                            ->placeholder('Select destination or Other'),
+                        TextInput::make('destination_other')
+                            ->label('Destination not listed')
+                            ->maxLength(255)
+                            ->required(fn (callable $get): bool => $get('destination_id') === 'other')
+                            ->visible(fn (callable $get): bool => $get('destination_id') === 'other' || filled($get('destination_other'))),
                         Select::make('tour_id')
                             ->label('Interested Tour')
-                            ->relationship('tour', 'title')
+                            ->options(fn () => Tour::query()->active()->published()->ordered()->pluck('title', 'id')->all() + ['other' => 'Other / custom itinerary'])
                             ->searchable()
                             ->preload()
-                            ->placeholder('No specific tour'),
+                            ->live()
+                            ->dehydrateStateUsing(fn ($state) => $state === 'other' ? null : $state)
+                            ->placeholder('Select tour or Other'),
+                        TextInput::make('tour_other')
+                            ->label('Tour / itinerary requested')
+                            ->maxLength(255)
+                            ->required(fn (callable $get): bool => $get('tour_id') === 'other')
+                            ->visible(fn (callable $get): bool => $get('tour_id') === 'other' || filled($get('tour_other'))),
                         DatePicker::make('travel_date')
                             ->label('Preferred Travel Date'),
                         Toggle::make('flexible_dates')
@@ -63,8 +83,20 @@ class EnquiryForm
                             ->label('Duration (Days)')
                             ->numeric()
                             ->minValue(1),
+                        TextInput::make('budget_min')
+                            ->label('Budget From (₹)')
+                            ->numeric()
+                            ->minValue(0)
+                            ->live(),
+                        TextInput::make('budget_max')
+                            ->label('Budget To (₹)')
+                            ->numeric()
+                            ->minValue(0)
+                            ->gte('budget_min')
+                            ->live(),
                         TextInput::make('budget_range')
-                            ->placeholder('e.g. 50,000 - 1,00,000'),
+                            ->hidden()
+                            ->dehydrateStateUsing(fn ($state, callable $get) => static::formatBudgetRange($get('budget_min'), $get('budget_max'))),
                         TextInput::make('adults')
                             ->numeric()
                             ->minValue(1)
@@ -125,7 +157,6 @@ class EnquiryForm
 
                 Section::make('Internal Notes')
                     ->icon('heroicon-o-lock-closed')
-                    ->collapsed()
                     ->schema([
                         Textarea::make('internal_notes')
                             ->label('')
@@ -136,7 +167,6 @@ class EnquiryForm
 
                 Section::make('Tracking Info')
                     ->icon('heroicon-o-signal')
-                    ->collapsed()
                     ->columns(2)
                     ->visibleOn('edit')
                     ->schema([
@@ -151,5 +181,14 @@ class EnquiryForm
                             ->content(fn ($record) => $record?->created_at?->format('d M Y, h:i A') ?? '—'),
                     ]),
             ]);
+    }
+
+    private static function formatBudgetRange(mixed $minimum, mixed $maximum): ?string
+    {
+        if ($minimum === null && $maximum === null) {
+            return null;
+        }
+
+        return '₹' . number_format((int) ($minimum ?? 0)) . ' – ₹' . number_format((int) ($maximum ?? 0));
     }
 }

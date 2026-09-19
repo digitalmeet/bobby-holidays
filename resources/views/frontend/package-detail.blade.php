@@ -1,17 +1,18 @@
 @extends('frontend.layouts.app')
 
-@section('title', 'Kashmir Delight Package - UniWorld Holidays')
+@section('title', '6-Day Kashmir Family Holiday | UniWorld Holidays')
+@section('meta_description', 'Explore Srinagar, Gulmarg and Pahalgam on a well-paced six-day Kashmir holiday with a houseboat stay, private transfers and flexible hotel options.')
 
 @section('content')
     @include('frontend.components.page-banner', ['title' => 'Kashmir Delight'])
 
     <section class="section-padding package-detail-section">
         <div class="container">
-            <div class="package-detail-hero" data-aos="fade-up">
+            <div class="package-detail-hero" data-animate="fade-up">
                 <div class="row g-4 align-items-stretch">
                     <div class="col-lg-7">
                         <div class="package-detail-media">
-                            <img src="{{ asset('assets/frontend/images/destination-kashmir.svg') }}" alt="Kashmir Delight package">
+                            <img src="{{ asset('assets/frontend/images/demo/destination-kashmir.webp') }}" alt="Kashmir Delight package" loading="eager" decoding="async">
                             <div class="package-media-badge">
                                 <i class="fa-solid fa-star"></i>
                                 Best for families
@@ -20,9 +21,9 @@
                     </div>
                     <div class="col-lg-5">
                         <div class="package-summary-card">
-                            <span class="section-kicker"><i class="fa-solid fa-mountain-sun"></i> Escorted Tour Package</span>
-                            <h1>Kashmir Delight with Srinagar, Gulmarg, and Pahalgam</h1>
-                            <p>Houseboat stay, valley drives, gardens, snow viewpoints, and private transfers planned at a comfortable pace.</p>
+                            <span class="section-kicker"><i class="fa-solid fa-mountain-sun"></i> Private Kashmir journey</span>
+                            <h1>Kashmir Valley Retreat: Srinagar, Gulmarg and Pahalgam</h1>
+                            <p>A measured route combining Dal Lake, valley scenery and seasonal mountain experiences with private transfers and flexible stay options.</p>
 
                             <div class="package-facts">
                                 <span><i class="fa-solid fa-calendar-days"></i> 5 Nights / 6 Days</span>
@@ -41,9 +42,9 @@
                             </div>
 
                             <div class="package-trust-row">
-                                <span><i class="fa-solid fa-check"></i> Custom hotels</span>
-                                <span><i class="fa-solid fa-check"></i> Easy EMI guidance</span>
-                                <span><i class="fa-solid fa-check"></i> WhatsApp support</span>
+                                <span><i class="fa-solid fa-check"></i> Curated hotel options</span>
+                                <span><i class="fa-solid fa-check"></i> Clear payment schedule</span>
+                                <span><i class="fa-solid fa-check"></i> Dedicated coordination</span>
                             </div>
                         </div>
                     </div>
@@ -97,7 +98,7 @@
                 <aside class="package-side-content">
                     <div class="policy-card package-help-card">
                         <h2 class="h5 fw-bold">Need help choosing dates?</h2>
-                        <p class="text-muted">Talk to our holiday expert for hotel upgrades, honeymoon inclusions, child-friendly plans, or group pricing.</p>
+                        <p class="text-muted">Discuss seasonal access, hotel categories, room combinations, child-friendly pacing or a milestone celebration with a consultant.</p>
                         <a class="btn-brand w-100 mb-2" href="{{ route('frontend.contact') }}"><i class="fa-solid fa-headset"></i> Request Callback</a>
                         <a class="btn-outline-brand w-100" href="https://wa.me/919876543210"><i class="fa-brands fa-whatsapp"></i> WhatsApp Quote</a>
                     </div>
@@ -113,6 +114,17 @@
                     </div>
                 </aside>
             </div>
+        </div>
+    </section>
+
+    <section class="section-padding bg-soft related-discovery-section">
+        <div class="container">
+            @include('frontend.components.section-heading', [
+                'kicker' => 'People also search for',
+                'title' => 'Continue exploring with purpose',
+                'text' => 'Compare destinations and travel styles before requesting a proposal designed around your priorities.',
+            ])
+            @include('frontend.components.explore-links')
         </div>
     </section>
 @endsection

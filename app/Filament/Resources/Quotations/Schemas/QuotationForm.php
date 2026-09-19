@@ -157,7 +157,7 @@ class QuotationForm
                                     ->schema([
                                         Placeholder::make('public_url')
                                             ->label('Shareable Link')
-                                            ->content(fn ($record) => $record ? url("/quote/{$record->public_id}") : '—')
+                                            ->content(fn ($record) => $record ? $record->publicUrl() : '—')
                                             ->columnSpanFull(),
                                         Placeholder::make('view_count_display')
                                             ->label('View Count')

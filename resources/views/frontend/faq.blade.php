@@ -1,6 +1,7 @@
 @extends('frontend.layouts.app')
 
-@section('title', 'FAQ - UniWorld Holidays')
+@section('title', 'Holiday Planning FAQs | UniWorld Holidays')
+@section('meta_description', 'Find clear answers about customised itineraries, booking deposits, payments, visas, cancellations and travel support with UniWorld Holidays.')
 
 @section('content')
     <div id="reading-progress"></div>
@@ -19,7 +20,7 @@
                 <i class="fa-solid fa-circle-question"></i>
             </div>
             <h1 class="fw-bold text-white mb-2" style="font-size:clamp(1.6rem,4vw,2.4rem);">Frequently Asked Questions</h1>
-            <p style="color:rgba(255,255,255,0.75);max-width:520px;margin-bottom:0;">Find quick answers to common travel queries. Can't find what you need? Just ask us.</p>
+            <p style="color:rgba(255,255,255,0.75);max-width:520px;margin-bottom:0;">Clear answers about planning, payments, documentation and support. If your question is specific, our consultants are ready to help.</p>
         </div>
     </div>
 
@@ -82,8 +83,8 @@
 
                     {{-- Bottom CTA --}}
                     <div class="blog-cta-block mt-5">
-                        <h5 class="text-white fw-bold mb-2">Didn't find your answer?</h5>
-                        <p class="mb-4" style="color:rgba(255,255,255,0.75);">Our travel experts are happy to help with any question about your trip.</p>
+                        <h5 class="text-white fw-bold mb-2">Need advice for your specific journey?</h5>
+                        <p class="mb-4" style="color:rgba(255,255,255,0.75);">Share your plans with a consultant for guidance based on your destination, dates and traveller needs.</p>
                         <div class="d-flex flex-wrap gap-3 justify-content-center">
                             <a href="{{ route('frontend.contact') }}" class="btn btn-light fw-bold px-4" style="border-radius:8px;color:#064f68;">
                                 <i class="fa-solid fa-paper-plane me-2"></i> Send a Message

@@ -67,20 +67,20 @@ class FollowUpResource extends Resource
                 ->required(),
             Select::make('type')
                 ->options([
-                    'call' => '📞 Phone Call',
-                    'whatsapp' => '💬 WhatsApp',
-                    'email' => '📧 Email',
-                    'meeting' => '🤝 Meeting',
-                    'note' => '📝 Note',
+                    'call' => 'Phone Call',
+                    'whatsapp' => 'WhatsApp',
+                    'email' => 'Email',
+                    'meeting' => 'Meeting',
+                    'note' => 'Note',
                 ])
                 ->required(),
             Select::make('status')
                 ->options([
-                    'completed' => '✅ Completed',
-                    'no_answer' => '📵 No Answer',
-                    'busy' => '🔴 Busy',
-                    'rescheduled' => '🔄 Rescheduled',
-                    'callback' => '📲 Callback Requested',
+                    'completed' => 'Completed',
+                    'no_answer' => 'No Answer',
+                    'busy' => 'Busy',
+                    'rescheduled' => 'Rescheduled',
+                    'callback' => 'Callback Requested',
                 ])
                 ->required(),
             DateTimePicker::make('scheduled_at')
@@ -117,11 +117,11 @@ class FollowUpResource extends Resource
                 TextColumn::make('type')
                     ->badge()
                     ->formatStateUsing(fn (string $state) => match ($state) {
-                        'call' => '📞 Call',
-                        'whatsapp' => '💬 WhatsApp',
-                        'email' => '📧 Email',
-                        'meeting' => '🤝 Meeting',
-                        'note' => '📝 Note',
+                        'call' => 'Call',
+                        'whatsapp' => 'WhatsApp',
+                        'email' => 'Email',
+                        'meeting' => 'Meeting',
+                        'note' => 'Note',
                         default => $state,
                     })
                     ->color('gray'),
@@ -194,10 +194,10 @@ class FollowUpResource extends Resource
                     ->form([
                         Select::make('status')
                             ->options([
-                                'completed' => '✅ Completed',
-                                'no_answer' => '📵 No Answer',
-                                'busy' => '🔴 Busy',
-                                'callback' => '📲 Callback',
+                                'completed' => 'Completed',
+                                'no_answer' => 'No Answer',
+                                'busy' => 'Busy',
+                                'callback' => 'Callback',
                             ])
                             ->default('completed')
                             ->required(),

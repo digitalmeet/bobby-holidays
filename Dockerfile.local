@@ -1,0 +1,66 @@
+# Development Dockerfile (for local Docker development)
+# This mounts the codebase as-is for faster iteration
+
+FROM php:8.4-fpm-bookworm
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libjpeg-dev \
+    libgif-dev \
+    libwebp-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    nginx \
+    supervisor \
+    libpq-dev \
+    libcurl4-openssl-dev \
+    pkg-config \
+    libfreetype6-dev \
+    libmagickwand-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+    --enable-gd \
+    --with-webp
+
+RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd curl zip
+
+# Install Redis and Imagick extensions
+RUN pecl install redis imagick \
+    && docker-php-ext-enable redis imagick
+
+# Get Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www
+
+# Copy application files (without vendor - should be mounted)
+COPY --chown=www-data:www-data . .
+
+# Copy Nginx configuration
+COPY docker/nginx.conf /etc/nginx/sites-available/default
+
+# Copy Supervisor configuration
+COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
+
+# Copy PHP custom config
+COPY docker/php-fpm-custom.ini /usr/local/etc/php/conf.d/custom.ini
+COPY docker/entrypoint.sh /usr/local/bin/app-entrypoint
+RUN sed -i 's/\r$//' /usr/local/bin/app-entrypoint && chmod +x /usr/local/bin/app-entrypoint
+
+# Expose port 80
+EXPOSE 80
+
+# Start Supervisor
+ENTRYPOINT ["/usr/local/bin/app-entrypoint"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisor.conf"]

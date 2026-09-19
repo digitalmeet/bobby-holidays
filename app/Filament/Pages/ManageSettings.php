@@ -6,13 +6,14 @@ use App\Models\Setting;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -42,14 +43,17 @@ class ManageSettings extends Page implements HasForms
 
     public function mount(): void
     {
-        $settings = Setting::pluck('value', 'key')->toArray();
+        $settings = Setting::query()
+            ->whereNotIn('key', Setting::SENSITIVE_KEYS)
+            ->pluck('value', 'key')
+            ->toArray();
         $this->form->fill($settings);
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Tabs::make('Settings')->tabs([
                     Tab::make('Company')->icon('heroicon-o-building-office')->columns(2)->schema([
                         TextInput::make('company_name')->label('Company Name')->default('UniWorld Holidays'),
@@ -60,6 +64,13 @@ class ManageSettings extends Page implements HasForms
                         TextInput::make('company_address')->label('Address'),
                         TextInput::make('company_city')->label('City'),
                         TextInput::make('company_gst')->label('GST Number'),
+                        FileUpload::make('site_logo')
+                            ->label('Website & admin logo')
+                            ->image()
+                            ->imageEditor()
+                            ->directory('settings')
+                            ->maxSize(1024)
+                            ->helperText('Use a transparent PNG logo. This is used across the website and admin panel.'),
                     ]),
                     Tab::make('Social')->icon('heroicon-o-globe-alt')->columns(2)->schema([
                         TextInput::make('social_facebook')->label('Facebook URL')->url(),
@@ -96,7 +107,8 @@ class ManageSettings extends Page implements HasForms
                         TextInput::make('razorpay_key_secret')->label('Key Secret')
                             ->placeholder('Secret key')
                             ->password()
-                            ->revealable(),
+                            ->revealable()
+                            ->helperText('Stored encrypted. Leave blank to keep the existing secret.'),
                     ]),
                 ])->columnSpanFull(),
             ])
@@ -111,7 +123,7 @@ class ManageSettings extends Page implements HasForms
             if ($value !== null && $value !== '') {
                 Setting::updateOrCreate(
                     ['key' => $key],
-                    ['value' => $value, 'group' => explode('_', $key)[0] ?? 'general', 'label' => str($key)->replace('_', ' ')->title()]
+                    ['value' => Setting::prepareValue($key, $value), 'group' => explode('_', $key)[0] ?? 'general', 'label' => str($key)->replace('_', ' ')->title()]
                 );
             }
         }

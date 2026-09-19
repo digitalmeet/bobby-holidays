@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Banner;
 use App\Models\Destination;
 use App\Models\Faq;
 use App\Models\Page;
@@ -9,7 +10,6 @@ use App\Models\Post;
 use App\Models\Testimonial;
 use App\Models\Tour;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class FrontendController extends Controller
 {
@@ -18,42 +18,40 @@ class FrontendController extends Controller
      */
     public function home()
     {
-        $featuredDestinations = Cache::remember('home.destinations', 300, fn () =>
-            Destination::active()
-                ->featured()
-                ->ordered()
-                ->withCount(['tours' => fn ($q) => $q->active()->published()])
-                ->limit(8)
-                ->get()
-        );
+        $heroBanners = Banner::currentlyVisible()
+            ->byPosition('homepage_hero')
+            ->orderBy('sort_order')
+            ->limit(5)
+            ->get();
 
-        $featuredTours = Cache::remember('home.tours', 300, fn () =>
-            Tour::active()
-                ->featured()
-                ->published()
-                ->ordered()
-                ->with('destination')
-                ->limit(6)
-                ->get()
-        );
+        $featuredDestinations = Destination::active()
+            ->featured()
+            ->ordered()
+            ->withCount(['tours' => fn ($q) => $q->active()->published()])
+            ->limit(8)
+            ->get();
 
-        $testimonials = Cache::remember('home.testimonials', 300, fn () =>
-            \App\Models\Testimonial::where('is_active', true)
-                ->where('is_featured', true)
-                ->orderBy('sort_order')
-                ->with('tour')
-                ->limit(6)
-                ->get()
-        );
+        $featuredTours = Tour::active()
+            ->featured()
+            ->published()
+            ->ordered()
+            ->with('destination')
+            ->limit(6)
+            ->get();
 
-        $posts = Cache::remember('home.posts', 300, fn () =>
-            Post::published()
-                ->latest('published_at')
-                ->limit(3)
-                ->get()
-        );
+        $testimonials = Testimonial::where('is_active', true)
+            ->where('is_featured', true)
+            ->orderBy('sort_order')
+            ->with('tour')
+            ->limit(6)
+            ->get();
 
-        return view('frontend.home', compact('featuredDestinations', 'featuredTours', 'testimonials', 'posts'));
+        $posts = Post::published()
+            ->latest('published_at')
+            ->limit(3)
+            ->get();
+
+        return view('frontend.home', compact('heroBanners', 'featuredDestinations', 'featuredTours', 'testimonials', 'posts'));
     }
 
     /**
@@ -61,12 +59,10 @@ class FrontendController extends Controller
      */
     public function destinations()
     {
-        $destinations = Cache::remember('destinations.list', 300, fn () =>
-            Destination::active()
-                ->ordered()
-                ->withCount(['tours' => fn ($q) => $q->active()->published()])
-                ->paginate(12)
-        );
+        $destinations = Destination::active()
+            ->ordered()
+            ->withCount(['tours' => fn ($q) => $q->active()->published()])
+            ->paginate(12);
 
         return view('frontend.destinations', compact('destinations'));
     }
@@ -165,8 +161,24 @@ class FrontendController extends Controller
             ->where('id', '!=', $tour->id)
             ->active()
             ->published()
-            ->limit(4)
+            ->with('destination')
+            ->limit(3)
             ->get();
+
+        // Keep discovery useful even when a destination has only one package.
+        if ($relatedTours->count() < 3) {
+            $fallbackTours = Tour::where('id', '!=', $tour->id)
+                ->whereNotIn('id', $relatedTours->pluck('id'))
+                ->active()
+                ->published()
+                ->with('destination')
+                ->when($tour->category, fn ($query, $category) => $query->orderByRaw('CASE WHEN category = ? THEN 0 ELSE 1 END', [$category]))
+                ->latest('published_at')
+                ->limit(3 - $relatedTours->count())
+                ->get();
+
+            $relatedTours = $relatedTours->concat($fallbackTours);
+        }
 
         return view('frontend.tour-detail', compact('tour', 'relatedTours'));
     }
@@ -207,12 +219,10 @@ class FrontendController extends Controller
      */
     public function faq()
     {
-        $faqs = Cache::remember('faqs.grouped', 600, fn () =>
-            Faq::where('is_active', true)
-                ->orderBy('sort_order')
-                ->get()
-                ->groupBy('category')
-        );
+        $faqs = Faq::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('category');
 
         return view('frontend.faq', compact('faqs'));
     }
@@ -226,6 +236,8 @@ class FrontendController extends Controller
 
         // Dedicated blade files for specific pages
         $dedicatedViews = [
+            'about-us' => 'frontend.about',
+            'gallery' => 'frontend.gallery',
             'privacy-policy' => 'frontend.privacy',
             'terms-conditions' => 'frontend.terms',
         ];
@@ -244,9 +256,7 @@ class FrontendController extends Controller
      */
     public function services()
     {
-        $services = Cache::remember('services.list', 600, fn () =>
-            Page::service()->published()->orderBy('sort_order')->get()
-        );
+        $services = Page::service()->published()->orderBy('sort_order')->get();
 
         return view('frontend.services', compact('services'));
     }

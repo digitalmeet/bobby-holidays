@@ -15,9 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin.access' => \App\Http\Middleware\AdminPanelAccess::class,
         ]);
+        $middleware->append(\App\Http\Middleware\CacheHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            fn (Request $request) => $request->expectsJson() || $request->is('api/*'),
         );
     })->create();

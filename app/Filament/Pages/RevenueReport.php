@@ -50,7 +50,7 @@ class RevenueReport extends Page
                     'month' => $date->format('M Y'),
                     'revenue' => Payment::where('status', 'received')->whereBetween('payment_date', [$start, $end])->sum('amount'),
                     'bookings' => Booking::whereBetween('created_at', [$start, $end])->count(),
-                    'cancellations' => Booking::where('status', 'cancelled')->whereBetween('cancelled_at', [$start, $end])->count(),
+                    'cancelled' => Booking::where('status', 'cancelled')->whereBetween('cancelled_at', [$start, $end])->count(),
                 ];
             }
 

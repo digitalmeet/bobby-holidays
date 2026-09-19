@@ -12,6 +12,7 @@ use Filament\Actions\RestoreAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\DB;
 
 class EditQuotation extends EditRecord
 {
@@ -24,8 +25,9 @@ class EditQuotation extends EditRecord
                 ->label('Copy Link')
                 ->icon('heroicon-o-link')
                 ->color('gray')
+                ->authorize('copyPublicLink')
                 ->action(function () {
-                    $url = url("/quote/{$this->record->public_id}");
+                    $url = $this->record->publicUrl();
                     Notification::make()
                         ->title('Public link copied')
                         ->body($url)
@@ -33,13 +35,14 @@ class EditQuotation extends EditRecord
                         ->send();
                 }),
 
-            Action::make('mark_sent')
-                ->label('Mark as Sent')
+            Action::make('send_to_client')
+                ->label('Send to Client')
                 ->icon('heroicon-o-paper-airplane')
                 ->color('info')
+                ->authorize('send')
                 ->visible(fn () => $this->record->status === 'draft')
                 ->requiresConfirmation()
-                ->modalDescription('This will mark the quotation as sent to the client.')
+                ->modalDescription('This will email the secure quotation link and branded PDF to the client, then mark the quotation as sent.')
                 ->action(function () {
                     $oldStatus = $this->record->status;
                     $this->record->update([
@@ -60,7 +63,7 @@ class EditQuotation extends EditRecord
                     if ($this->record->client_email) {
                         try {
                             \Illuminate\Support\Facades\Mail::to($this->record->client_email)
-                                ->send(new QuotationSent($this->record));
+                                ->queue(new QuotationSent($this->record));
                             $emailSent = true;
                         } catch (\Throwable $e) {
                             \Log::warning('Quotation email failed: ' . $e->getMessage());
@@ -70,7 +73,7 @@ class EditQuotation extends EditRecord
                     $this->refreshFormData(['status']);
 
                     if ($emailSent) {
-                        Notification::make()->title('Quotation sent & email delivered.')->success()->send();
+                        Notification::make()->title('Quotation marked as sent; email and PDF queued.')->success()->send();
                     } elseif ($this->record->client_email) {
                         Notification::make()->title('Quotation marked as sent.')->body('Email delivery failed. Share the link manually.')->warning()->send();
                     } else {
@@ -82,6 +85,7 @@ class EditQuotation extends EditRecord
                 ->label('Accept')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
+                ->authorize('accept')
                 ->visible(fn () => in_array($this->record->status, ['sent', 'viewed']))
                 ->requiresConfirmation()
                 ->modalDescription('Mark this quotation as accepted by the client?')
@@ -113,6 +117,7 @@ class EditQuotation extends EditRecord
                 ->label('Reject')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
+                ->authorize('reject')
                 ->visible(fn () => in_array($this->record->status, ['sent', 'viewed']))
                 ->form([
                     Textarea::make('rejection_reason')
@@ -145,43 +150,45 @@ class EditQuotation extends EditRecord
                 ->label('Create Revision')
                 ->icon('heroicon-o-document-duplicate')
                 ->color('warning')
+                ->authorize('createVersion')
                 ->visible(fn () => in_array($this->record->status, ['sent', 'viewed', 'rejected']))
                 ->requiresConfirmation()
                 ->modalDescription('This will create a new version of this quotation and mark this one as revised.')
                 ->action(function () {
-                    $oldRecord = $this->record;
+                    $newQuotation = DB::transaction(function (): Quotation {
+                        $oldRecord = Quotation::query()->lockForUpdate()->findOrFail($this->record->id);
+                        $oldStatus = $oldRecord->status;
 
-                    // Create new version
-                    $newQuotation = $oldRecord->replicate(['public_id', 'access_token', 'sent_at', 'viewed_at', 'view_count', 'accepted_at', 'rejected_at', 'rejection_reason']);
-                    $newQuotation->version = $oldRecord->version + 1;
-                    $newQuotation->parent_quotation_id = $oldRecord->id;
-                    $newQuotation->status = 'draft';
-                    $newQuotation->save();
+                        $newQuotation = $oldRecord->replicate(['public_id', 'access_token', 'sent_at', 'viewed_at', 'view_count', 'accepted_at', 'rejected_at', 'rejection_reason']);
+                        $newQuotation->version = $oldRecord->version + 1;
+                        $newQuotation->parent_quotation_id = $oldRecord->id;
+                        $newQuotation->status = 'draft';
+                        $newQuotation->save();
 
-                    // Copy items
-                    foreach ($oldRecord->items as $item) {
-                        $newItem = $item->replicate();
-                        $newItem->quotation_id = $newQuotation->id;
-                        $newItem->save();
-                    }
+                        foreach ($oldRecord->items as $item) {
+                            $newItem = $item->replicate();
+                            $newItem->quotation_id = $newQuotation->id;
+                            $newItem->save();
+                        }
 
-                    // Copy sections
-                    foreach ($oldRecord->sections as $section) {
-                        $newSection = $section->replicate();
-                        $newSection->quotation_id = $newQuotation->id;
-                        $newSection->save();
-                    }
+                        foreach ($oldRecord->sections as $section) {
+                            $newSection = $section->replicate();
+                            $newSection->quotation_id = $newQuotation->id;
+                            $newSection->save();
+                        }
 
-                    // Mark old as revised
-                    $oldRecord->update(['status' => 'revised']);
-                    $oldRecord->histories()->create([
-                        'changed_by' => auth()->id(),
-                        'event' => 'revised',
-                        'old_status' => $oldRecord->status,
-                        'new_status' => 'revised',
-                        'notes' => "New version v{$newQuotation->version} created.",
-                        'created_at' => now(),
-                    ]);
+                        $oldRecord->update(['status' => 'revised']);
+                        $oldRecord->histories()->create([
+                            'changed_by' => auth()->id(),
+                            'event' => 'revised',
+                            'old_status' => $oldStatus,
+                            'new_status' => 'revised',
+                            'notes' => "New version v{$newQuotation->version} created.",
+                            'created_at' => now(),
+                        ]);
+
+                        return $newQuotation;
+                    }, 3);
 
                     Notification::make()->title("Revision v{$newQuotation->version} created.")->success()->send();
 
@@ -193,6 +200,7 @@ class EditQuotation extends EditRecord
                 ->label('Create Booking')
                 ->icon('heroicon-o-ticket')
                 ->color('success')
+                ->authorize(fn (): bool => auth()->user()->can('create', \App\Models\Booking::class))
                 ->visible(fn () => $this->record->status === 'accepted')
                 ->requiresConfirmation()
                 ->modalDescription('Create a confirmed booking from this accepted quotation?')
@@ -202,7 +210,11 @@ class EditQuotation extends EditRecord
                 ->label('Download PDF')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('gray')
-                ->url(fn () => route('quotation.pdf', $this->record->public_id))
+                ->authorize('downloadPdf')
+                ->url(fn () => route('quotation.pdf', [
+                    'publicId' => $this->record->public_id,
+                    'token' => $this->record->access_token,
+                ]))
                 ->openUrlInNewTab(),
 
             DeleteAction::make(),

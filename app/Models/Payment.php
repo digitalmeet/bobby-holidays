@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\LogsActivity;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -18,6 +19,7 @@ class Payment extends Model
      */
     protected $fillable = [
         'booking_id',
+        'online_payment_id',
         'amount',
         'currency',
         'method',
@@ -39,12 +41,26 @@ class Payment extends Model
         'payment_date' => 'date',
     ];
 
+    protected static function booted(): void
+    {
+        static::updating(function (Payment $payment): void {
+            if (!app()->runningInConsole() && auth()->check() && !auth()->user()->isSuperAdmin()) {
+                throw new AuthorizationException('Only a super administrator can amend a recorded payment.');
+            }
+        });
+    }
+
     /**
      * Get the booking that this payment is for.
      */
     public function booking()
     {
         return $this->belongsTo(Booking::class);
+    }
+
+    public function onlinePayment()
+    {
+        return $this->belongsTo(OnlinePayment::class);
     }
 
     /**

@@ -5,15 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Quotation;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class QuotationController extends Controller
 {
     /**
      * Public quotation view page.
      */
-    public function show(string $publicId)
+    public function show(string $publicId, Request $request)
     {
-        $quotation = Quotation::where('public_id', $publicId)
+        $quotation = $this->authorizedQuotation($publicId, $request)
             ->with(['items' => fn ($q) => $q->orderBy('sort_order'), 'sections'])
             ->firstOrFail();
 
@@ -45,9 +46,9 @@ class QuotationController extends Controller
     /**
      * Download quotation as PDF.
      */
-    public function downloadPdf(string $publicId)
+    public function downloadPdf(string $publicId, Request $request)
     {
-        $quotation = Quotation::where('public_id', $publicId)
+        $quotation = $this->authorizedQuotation($publicId, $request)
             ->with(['items' => fn ($q) => $q->orderBy('sort_order'), 'sections'])
             ->firstOrFail();
 
@@ -63,28 +64,31 @@ class QuotationController extends Controller
      */
     public function accept(string $publicId, Request $request)
     {
-        $quotation = Quotation::where('public_id', $publicId)
-            ->whereIn('status', ['sent', 'viewed'])
-            ->firstOrFail();
+        DB::transaction(function () use ($publicId, $request): void {
+            $quotation = $this->authorizedQuotation($publicId, $request)
+                ->whereIn('status', ['sent', 'viewed'])
+                ->valid()
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $oldStatus = $quotation->status;
-        $quotation->update([
-            'status' => 'accepted',
-            'accepted_at' => now(),
-        ]);
+            $oldStatus = $quotation->status;
+            $quotation->update([
+                'status' => 'accepted',
+                'accepted_at' => now(),
+            ]);
 
-        $quotation->histories()->create([
-            'event' => 'accepted',
-            'old_status' => $oldStatus,
-            'new_status' => 'accepted',
-            'notes' => 'Accepted by client via public link.',
-            'created_at' => now(),
-        ]);
+            $quotation->histories()->create([
+                'event' => 'accepted',
+                'old_status' => $oldStatus,
+                'new_status' => 'accepted',
+                'notes' => 'Accepted by client via secure public link.',
+                'created_at' => now(),
+            ]);
 
-        // Update linked enquiry
-        if ($quotation->enquiry_id) {
-            $quotation->enquiry->update(['status' => 'converted']);
-        }
+            if ($quotation->enquiry_id) {
+                $quotation->enquiry()->lockForUpdate()->first()?->update(['status' => 'converted']);
+            }
+        }, 3);
 
         return redirect()->back()->with('success', 'Quotation accepted successfully! Our team will contact you shortly.');
     }
@@ -98,25 +102,39 @@ class QuotationController extends Controller
             'rejection_reason' => 'nullable|string|max:500',
         ]);
 
-        $quotation = Quotation::where('public_id', $publicId)
-            ->whereIn('status', ['sent', 'viewed'])
-            ->firstOrFail();
+        DB::transaction(function () use ($publicId, $request): void {
+            $quotation = $this->authorizedQuotation($publicId, $request)
+                ->whereIn('status', ['sent', 'viewed'])
+                ->valid()
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $oldStatus = $quotation->status;
-        $quotation->update([
-            'status' => 'rejected',
-            'rejected_at' => now(),
-            'rejection_reason' => $request->rejection_reason,
-        ]);
+            $oldStatus = $quotation->status;
+            $quotation->update([
+                'status' => 'rejected',
+                'rejected_at' => now(),
+                'rejection_reason' => $request->rejection_reason,
+            ]);
 
-        $quotation->histories()->create([
-            'event' => 'rejected',
-            'old_status' => $oldStatus,
-            'new_status' => 'rejected',
-            'notes' => $request->rejection_reason ?? 'Rejected by client via public link.',
-            'created_at' => now(),
-        ]);
+            $quotation->histories()->create([
+                'event' => 'rejected',
+                'old_status' => $oldStatus,
+                'new_status' => 'rejected',
+                'notes' => $request->rejection_reason ?? 'Rejected by client via secure public link.',
+                'created_at' => now(),
+            ]);
+        }, 3);
 
         return redirect()->back()->with('success', 'Thank you for your feedback. We will get back to you with alternatives.');
+    }
+
+    private function authorizedQuotation(string $publicId, Request $request)
+    {
+        $token = (string) ($request->input('access_token') ?? $request->query('token', ''));
+        $quotation = Quotation::query()->where('public_id', $publicId)->firstOrFail();
+
+        abort_unless($quotation->access_token && hash_equals($quotation->access_token, $token), 404);
+
+        return Quotation::query()->whereKey($quotation->id);
     }
 }

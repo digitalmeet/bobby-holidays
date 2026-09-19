@@ -1,10 +1,10 @@
 <section class="lead-capture-section {{ $class ?? '' }}">
     <div class="container">
-        <div class="lead-capture-card" data-aos="fade-up">
+        <div class="lead-capture-card" data-animate="fade-up">
             <div class="lead-capture-copy">
-                <span class="section-kicker"><i class="fa-solid fa-headset"></i> {{ $kicker ?? 'Free Travel Consultation' }}</span>
-                <h2>{{ $title ?? 'Get a custom quote from our holiday expert' }}</h2>
-                <p>{{ $text ?? 'Share your details and preferred destination. Our team will call back with the best itinerary, hotels, and price options.' }}</p>
+                <span class="section-kicker"><i class="fa-solid fa-headset"></i> {{ $kicker ?? 'Personal Travel Consultation' }}</span>
+                <h2>{{ $title ?? 'Discuss your holiday with a destination specialist' }}</h2>
+                <p>{{ $text ?? 'Tell us what matters to you. We will recommend a suitable route, stay category and experience mix with transparent options.' }}</p>
             </div>
             <form class="lead-capture-form" action="{{ route('frontend.contact') }}" method="get">
                 <div class="row g-3">
@@ -27,9 +27,9 @@
                     <div class="col-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                             <div class="lead-benefits">
-                                <span><i class="fa-solid fa-check"></i> No obligation quote</span>
-                                <span><i class="fa-solid fa-check"></i> Best-fit hotels</span>
-                                <span><i class="fa-solid fa-check"></i> WhatsApp support</span>
+                                <span><i class="fa-solid fa-check"></i> No-obligation proposal</span>
+                                <span><i class="fa-solid fa-check"></i> Considered hotel options</span>
+                                <span><i class="fa-solid fa-check"></i> Dedicated coordination</span>
                             </div>
                             <button class="btn-brand btn-accent" type="submit"><i class="fa-solid fa-paper-plane"></i> Request Callback</button>
                         </div>

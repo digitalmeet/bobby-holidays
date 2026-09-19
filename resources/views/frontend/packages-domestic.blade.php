@@ -1,24 +1,24 @@
 @extends('frontend.layouts.app')
 
-@section('title', 'Domestic Packages - UniWorld Holidays')
-@section('meta_description', 'Explore our curated domestic holiday packages across India — Kashmir, Goa, Kerala, Himachal and more.')
+@section('title', 'Tailor-Made India Holiday Packages | UniWorld Holidays')
+@section('meta_description', 'Explore personalised India holiday packages for Kashmir, Goa, Kerala, Rajasthan and more, with curated stays, private transfers and flexible itineraries.')
 
 @section('content')
-    @include('frontend.components.page-banner', ['title' => 'Domestic Packages', 'subtitle' => 'Explore the beauty of India'])
+    @include('frontend.components.page-banner', ['title' => 'India Holidays', 'subtitle' => 'Thoughtfully paced journeys across the country'])
 
     <section class="section-padding">
         <div class="container">
             @include('frontend.components.section-heading', [
-                'kicker' => 'India Tours',
-                'title' => 'Domestic holidays for every mood',
-                'text' => 'From hill stations to beaches, heritage walks to wildlife — find your perfect Indian getaway.',
+                'kicker' => 'Journeys across India',
+                'title' => 'Remarkable landscapes, designed around you',
+                'text' => 'Compare flexible itineraries spanning Himalayan valleys, coastal retreats, cultural capitals and restorative backwaters.',
             ])
             @include('frontend.components.filter-bar')
-            <div class="row g-4">
+            <div class="row g-4 equal-card-grid equal-card-grid--3">
                 @forelse($tours ?? [] as $tour)
                     <div class="col-lg-4 col-md-6">
                         @include('frontend.components.package-card', [
-                            'image' => $tour->hero_image ? asset('storage/' . $tour->hero_image) : asset('assets/frontend/images/destination-kashmir.svg'),
+                            'image' => media_url($tour->hero_image, 'assets/frontend/images/demo/destination-kashmir.webp'),
                             'title' => $tour->title,
                             'duration' => $tour->duration_nights . ' Nights / ' . $tour->duration_days . ' Days',
                             'type' => ucfirst($tour->category ?? 'Tour'),
@@ -28,9 +28,9 @@
                         ])
                     </div>
                 @empty
-                    <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/destination-goa.svg', 'title' => 'Goa Beach Break', 'duration' => '3 Nights / 4 Days', 'type' => 'Friends', 'description' => 'Beach stay, North Goa sightseeing, water sports, and leisure evenings.', 'price' => 'INR 15,999', 'url' => route('frontend.contact')])</div>
-                    <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/destination-kashmir.svg', 'title' => 'Kashmir Delight', 'duration' => '5 Nights / 6 Days', 'type' => 'Family', 'description' => 'Srinagar, Gulmarg, Pahalgam, houseboat stay, and valley views.', 'price' => 'INR 24,999', 'url' => route('frontend.contact')])</div>
-                    <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/page-banner.svg', 'title' => 'Himachal Getaway', 'duration' => '5 Nights / 6 Days', 'type' => 'Couple', 'description' => 'Shimla, Manali, mountain roads, adventure activities, and cozy stays.', 'price' => 'INR 21,999', 'url' => route('frontend.contact')])</div>
+                    <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/demo/destination-goa.webp', 'title' => 'Goa Beach Break', 'duration' => '3 Nights / 4 Days', 'type' => 'Friends', 'description' => 'Beach stay, North Goa sightseeing, water sports, and leisure evenings.', 'price' => 'INR 15,999', 'url' => route('frontend.contact')])</div>
+                    <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/demo/destination-kashmir.webp', 'title' => 'Kashmir Delight', 'duration' => '5 Nights / 6 Days', 'type' => 'Family', 'description' => 'Srinagar, Gulmarg, Pahalgam, houseboat stay, and valley views.', 'price' => 'INR 24,999', 'url' => route('frontend.contact')])</div>
+                    <div class="col-lg-4 col-md-6">@include('frontend.components.package-card', ['image' => 'assets/frontend/images/demo/destination-himachal.png', 'title' => 'Himachal Getaway', 'duration' => '5 Nights / 6 Days', 'type' => 'Couple', 'description' => 'Shimla, Manali, mountain roads, adventure activities, and cozy stays.', 'price' => 'INR 21,999', 'url' => route('frontend.contact')])</div>
                 @endforelse
             </div>
             @if(isset($tours) && $tours instanceof \Illuminate\Pagination\AbstractPaginator && $tours->hasPages())

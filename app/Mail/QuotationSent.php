@@ -3,13 +3,16 @@
 namespace App\Mail;
 
 use App\Models\Quotation;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class QuotationSent extends Mailable
+class QuotationSent extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -28,8 +31,21 @@ class QuotationSent extends Mailable
             view: 'emails.quotation-sent',
             with: [
                 'quotation' => $this->quotation,
-                'publicUrl' => url("/quote/{$this->quotation->public_id}"),
+                'publicUrl' => $this->quotation->publicUrl(),
             ],
         );
+    }
+
+    public function attachments(): array
+    {
+        $quotation = $this->quotation->loadMissing(['items' => fn ($query) => $query->orderBy('sort_order'), 'sections']);
+        $filename = 'UniWorld-Quote-' . $quotation->public_id . '-v' . $quotation->version . '.pdf';
+
+        return [
+            Attachment::fromData(
+                fn (): string => Pdf::loadView('quotations.pdf', compact('quotation'))->output(),
+                $filename,
+            )->withMime('application/pdf'),
+        ];
     }
 }

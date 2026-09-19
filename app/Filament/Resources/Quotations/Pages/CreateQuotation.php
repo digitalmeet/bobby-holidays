@@ -49,10 +49,6 @@ class CreateQuotation extends CreateRecord
                 'version' => 1,
             ]);
 
-            // Update enquiry status to quoted
-            if ($enquiry->status !== 'converted') {
-                $enquiry->update(['status' => 'quoted']);
-            }
         }
     }
 
@@ -63,6 +59,10 @@ class CreateQuotation extends CreateRecord
 
     protected function afterCreate(): void
     {
+        if ($this->record->enquiry && $this->record->enquiry->status !== 'converted') {
+            $this->record->enquiry->update(['status' => 'quoted']);
+        }
+
         // Log history
         $this->record->histories()->create([
             'changed_by' => auth()->id(),

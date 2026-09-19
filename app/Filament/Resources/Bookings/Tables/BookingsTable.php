@@ -4,11 +4,7 @@ namespace App\Filament\Resources\Bookings\Tables;
 
 use App\Models\Booking;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\RestoreAction;
-use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -121,13 +117,9 @@ class BookingsTable
             ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
-                RestoreAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
                 ]),
             ]);
     }

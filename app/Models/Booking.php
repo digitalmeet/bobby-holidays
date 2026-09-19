@@ -77,23 +77,20 @@ class Booking extends Model
         $year = (int) now()->format('Y');
 
         return DB::transaction(function () use ($year) {
+            DB::table('booking_sequences')->insertOrIgnore([
+                'year' => $year,
+                'last_number' => 0,
+            ]);
+
             $sequence = DB::table('booking_sequences')
                 ->where('year', $year)
                 ->lockForUpdate()
-                ->first();
+                ->firstOrFail();
 
-            if ($sequence) {
-                $nextNumber = $sequence->last_number + 1;
-                DB::table('booking_sequences')
-                    ->where('year', $year)
-                    ->update(['last_number' => $nextNumber]);
-            } else {
-                $nextNumber = 1;
-                DB::table('booking_sequences')->insert([
-                    'year' => $year,
-                    'last_number' => $nextNumber,
-                ]);
-            }
+            $nextNumber = $sequence->last_number + 1;
+            DB::table('booking_sequences')
+                ->where('year', $year)
+                ->update(['last_number' => $nextNumber]);
 
             return sprintf('UW-%d-%06d', $year, $nextNumber);
         });

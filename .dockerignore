@@ -1,0 +1,63 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Laravel
+.env
+.env.*
+!.env.*.example
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+vendor/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Docker
+docker-compose.yml
+docker-compose.production.yml
+.docker/
+
+# Documentation
+*.md
+!README.md
+TECHNICAL_HANDOFF.md
+ISSUES.md
+PROMPTS.md
+HANDOFF.md
+
+# Test files
+tests/
+phpunit.xml
+phpunit.xml.dist
+
+# IDE specific
+.DS_Store
+Thumbs.db
+
+# Temporary files
+storage/*.key
+storage/logs/*.log
+storage/framework/cache/*.php
+storage/framework/sessions/*.php
+storage/framework/views/*.php
+
+# Code execution files
+*.bak
+*.tmp
+*.temp

@@ -120,32 +120,13 @@ class QuotationsTable
                     ->label('Copy Link')
                     ->icon('heroicon-o-link')
                     ->color('gray')
+                    ->authorize('copyPublicLink')
                     ->action(function (Quotation $record) {
                         Notification::make()
                             ->title('Link copied to clipboard')
-                            ->body(url("/quote/{$record->public_id}"))
+                            ->body($record->publicUrl())
                             ->success()
                             ->send();
-                    }),
-                Action::make('mark_sent')
-                    ->label('Mark Sent')
-                    ->icon('heroicon-o-paper-airplane')
-                    ->color('info')
-                    ->visible(fn (Quotation $record) => $record->status === 'draft')
-                    ->requiresConfirmation()
-                    ->action(function (Quotation $record) {
-                        $record->update([
-                            'status' => 'sent',
-                            'sent_at' => now(),
-                        ]);
-
-                        $record->histories()->create([
-                            'changed_by' => auth()->id(),
-                            'event' => 'sent',
-                            'old_status' => 'draft',
-                            'new_status' => 'sent',
-                            'created_at' => now(),
-                        ]);
                     }),
                 DeleteAction::make(),
                 RestoreAction::make(),

@@ -149,28 +149,30 @@
             <div class="flex flex-col sm:flex-row gap-3 mb-6">
                 <form action="{{ route('quotation.accept', $quotation->public_id) }}" method="POST" class="flex-1">
                     @csrf
+                    <input type="hidden" name="access_token" value="{{ $quotation->access_token }}">
                     <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition">
                         ✅ Accept Quotation
                     </button>
                 </form>
                 @if(setting('razorpay_enabled') === 'true')
-                    <a href="{{ route('payment.page', $quotation->public_id) }}" class="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
+                    <a href="{{ $quotation->paymentUrl() }}" class="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
                         💳 Pay Online
                     </a>
                 @endif
                 <form action="{{ route('quotation.reject', $quotation->public_id) }}" method="POST" class="flex-1" onsubmit="return confirm('Are you sure you want to decline this quotation?')">
                     @csrf
+                    <input type="hidden" name="access_token" value="{{ $quotation->access_token }}">
                     <button type="submit" class="w-full bg-red-50 hover:bg-red-100 text-red-700 font-semibold py-3 px-6 rounded-lg border border-red-200 transition">
                         ❌ Decline
                     </button>
                 </form>
-                <a href="{{ route('quotation.pdf', $quotation->public_id) }}" class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg border transition" target="_blank">
+                <a href="{{ route('quotation.pdf', ['publicId' => $quotation->public_id, 'token' => $quotation->access_token]) }}" class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg border transition" target="_blank">
                     📄 Download PDF
                 </a>
             </div>
         @elseif($quotation->status === 'accepted' && setting('razorpay_enabled') === 'true')
             <div class="mb-6">
-                <a href="{{ route('payment.page', $quotation->public_id) }}" class="block text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
+                <a href="{{ $quotation->paymentUrl() }}" class="block text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
                     💳 Pay Online — ₹{{ number_format($quotation->total_amount, 2) }}
                 </a>
             </div>

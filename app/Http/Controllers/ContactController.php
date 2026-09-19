@@ -27,6 +27,8 @@ class ContactController extends Controller
             'children' => 'nullable|integer|min:0|max:20',
             'message' => 'nullable|string|max:2000',
             'source_page' => 'nullable|string|max:255',
+            'budget_range' => 'nullable|string|max:100',
+            'privacy_acceptance' => 'required|accepted',
         ]);
 
         // Try to match destination
@@ -49,10 +51,14 @@ class ContactController extends Controller
             'adults' => $validated['adults'] ?? 1,
             'children' => $validated['children'] ?? 0,
             'message' => $validated['message'] ?? ($sourcePage ? "Enquiry from: /{$sourcePage}" : null),
+            'budget_range' => $validated['budget_range'] ?? null,
             'status' => 'new',
             'source' => 'website',
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
+            'privacy_accepted_at' => now(),
+            'privacy_policy_version' => config('legal.privacy_policy_version'),
+            'consent_source' => $isSticky ? 'sticky-enquiry' : 'contact-form',
             'internal_notes' => $isSticky ? "Quick enquiry from sticky bar on /{$sourcePage}" : null,
         ]);
 

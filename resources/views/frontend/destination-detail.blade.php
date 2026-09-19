@@ -3,15 +3,21 @@
 @section('title', ($destination->meta_title ?? $destination->name) . ' — UniWorld Holidays')
 @section('meta_description', $destination->meta_description ?? $destination->short_description ?? '')
 @section('og_image_meta')
-@if($destination->og_image)<meta property="og:image" content="{{ asset('storage/' . $destination->og_image) }}">@endif
+@if($destination->og_image)<meta property="og:image" content="{{ media_url($destination->og_image) }}">@endif
 @endsection
 
 @section('content')
     <div id="reading-progress"></div>
 
+    @push('head')
+    @if($destination->hero_image)
+    <link rel="preload" as="image" href="{{ media_url($destination->hero_image) }}">
+    @endif
+    @endpush
+
     {{-- Hero Section --}}
     @if($destination->hero_image)
-        <div class="destination-hero" style="background-image:url('{{ asset('storage/' . $destination->hero_image) }}');">
+        <div class="destination-hero" style="background-image:url('{{ media_url($destination->hero_image) }}');">
             <div class="blog-hero-overlay"></div>
             <div class="container" style="position:relative;z-index:2;padding-top:80px;padding-bottom:48px;">
                 <nav aria-label="breadcrumb" class="mb-3">
@@ -49,11 +55,11 @@
     <section class="section-padding">
         <div class="container">
             @if($destination->short_description)
-                <p class="lead text-center mb-5" style="color:#4a5568;max-width:680px;margin-left:auto;margin-right:auto;" data-aos="fade-up">{{ $destination->short_description }}</p>
+                <p class="lead text-center mb-5" style="color:#4a5568;max-width:680px;margin-left:auto;margin-right:auto;" data-animate="fade-up">{{ $destination->short_description }}</p>
             @endif
 
             @if($destination->description)
-                <div class="row justify-content-center mb-5" data-aos="fade-up">
+                <div class="row justify-content-center mb-5" data-animate="fade-up">
                     <div class="col-lg-10">
                         <div class="destination-description-card">
                             <div class="content-body">{!! $destination->description !!}</div>
@@ -71,7 +77,7 @@
                         </div>
                         <div class="row g-3">
                             @foreach($destination->highlights as $item)
-                                <div class="col-md-6" data-aos="fade-up" data-aos-delay="{{ $loop->index * 50 }}">
+                                <div class="col-md-6" data-animate="fade-up" data-animate-delay="{{ $loop->index * 50 }}">
                                     <div class="destination-highlight-pill">
                                         <i class="fa-solid fa-check-circle"></i>
                                         <span>{{ $item['highlight'] ?? $item }}</span>
@@ -93,11 +99,11 @@
                 'title' => 'Tours available in ' . $destination->name,
                 'text' => '',
             ])
-            <div class="row g-4">
+            <div class="row g-4 equal-card-grid equal-card-grid--3">
                 @forelse($tours as $tour)
                     <div class="col-lg-4 col-md-6">
                         @include('frontend.components.package-card', [
-                            'image' => $tour->hero_image ? asset('storage/' . $tour->hero_image) : asset('assets/frontend/images/destination-kashmir.svg'),
+                            'image' => media_url($tour->hero_image, 'assets/frontend/images/demo/destination-kashmir.webp'),
                             'title' => $tour->title,
                             'duration' => $tour->duration_nights . ' Nights / ' . $tour->duration_days . ' Days',
                             'type' => ucfirst($tour->category ?? 'Tour'),

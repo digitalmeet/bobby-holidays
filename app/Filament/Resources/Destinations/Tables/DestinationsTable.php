@@ -2,18 +2,11 @@
 
 namespace App\Filament\Resources\Destinations\Tables;
 
-use App\Models\User;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\RestoreAction;
-use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
@@ -28,6 +21,7 @@ class DestinationsTable
         return $table
             ->columns([
                 ImageColumn::make('hero_image')
+                    ->defaultImageUrl(asset('assets/frontend/images/image-placeholder.svg'))
                     ->circular()
                     ->size(50),
                 TextColumn::make('name')
@@ -42,9 +36,9 @@ class DestinationsTable
                 IconColumn::make('is_featured')
                     ->boolean()
                     ->toggleable(),
-                IconColumn::make('is_active')
-                    ->boolean()
-                    ->toggleable(),
+                ToggleColumn::make('is_active')
+                    ->label('Active')
+                    ->tooltip('Show or hide this destination on the website.'),
                 TextColumn::make('sort_order')
                     ->numeric()
                     ->sortable()
@@ -71,22 +65,6 @@ class DestinationsTable
             ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
-                RestoreAction::make(),
-                ForceDeleteAction::make()
-                    ->visible(function (User $user) {
-                        return $user->hasRole('super_admin') && $user->can('force_delete_destinations');
-                    }),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                    ForceDeleteBulkAction::make()
-                        ->visible(function (User $user) {
-                            return $user->hasRole('super_admin') && $user->can('force_delete_destinations');
-                        }),
-                ]),
             ]);
     }
 }

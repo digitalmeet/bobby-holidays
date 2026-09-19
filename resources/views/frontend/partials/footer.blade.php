@@ -3,9 +3,9 @@
         <div class="row g-4 footer-main">
             <div class="col-lg-4 col-md-6 footer-brand-col">
                 <a class="d-inline-block mb-3" href="{{ route('frontend.home') }}">
-                    <img class="footer-logo" src="{{ asset('assets/frontend/images/uniworld-logo-cropped.png') }}" alt="UniWorld Holidays">
+                    <img class="footer-logo" src="{{ media_url(setting('site_logo'), 'assets/frontend/images/uniworld-logo-cropped.png') }}" alt="{{ setting('company_name', 'UniWorld Holidays') }}">
                 </a>
-                <p>UniWorld Holidays designs domestic and international vacations, group tours, honeymoon escapes, and business travel support with reliable planning from enquiry to return.</p>
+                <p>UniWorld Holidays designs personalised journeys across India and selected international destinations, with clear proposals and accountable coordination from enquiry to return.</p>
                 <div class="footer-social mt-3">
                     @if(setting('social_facebook'))<a href="{{ setting('social_facebook') }}" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>@endif
                     @if(setting('social_instagram'))<a href="{{ setting('social_instagram') }}" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>@endif
@@ -61,8 +61,8 @@
                 </ul>
                 <form class="mt-3" action="{{ route('frontend.contact') }}" method="get">
                     <div class="input-group">
-                        <input type="email" class="form-control" placeholder="Email address" aria-label="Email address">
-                        <button class="btn btn-brand" type="submit" aria-label="Subscribe"><i class="fa-solid fa-paper-plane"></i></button>
+                        <input type="email" name="email" class="form-control" placeholder="Your email" aria-label="Email address">
+                        <button class="btn btn-brand" type="submit" aria-label="Start a travel enquiry"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
                 </form>
             </div>

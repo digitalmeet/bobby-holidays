@@ -17,7 +17,9 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -59,12 +61,17 @@ class TestimonialResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->defaultSort('sort_order')->reorderable('sort_order')->columns([
+            ImageColumn::make('avatar')
+                ->label('')
+                ->defaultImageUrl(asset('assets/frontend/images/image-placeholder.svg'))
+                ->circular()
+                ->size(40),
             TextColumn::make('name')->searchable()->sortable()->description(fn ($record) => $record->location),
             TextColumn::make('rating')->formatStateUsing(fn (int $state) => str_repeat('★', $state) . str_repeat('☆', 5 - $state))->color('warning'),
             TextColumn::make('content')->limit(50),
             TextColumn::make('tour.title')->label('Tour')->placeholder('General')->limit(20),
             IconColumn::make('is_featured')->boolean()->label('Featured'),
-            IconColumn::make('is_active')->boolean()->label('Active'),
+            ToggleColumn::make('is_active')->label('Active')->tooltip('Show or hide this testimonial on the website.'),
         ])->filters([
             TernaryFilter::make('is_active'),
             TernaryFilter::make('is_featured'),

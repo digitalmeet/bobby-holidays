@@ -54,15 +54,15 @@ img {
 }
 
 .section-padding {
-    padding: 96px 0;
+    padding: 72px 0;
 }
 
 .section-padding-sm {
-    padding: 68px 0;
+    padding: 52px 0;
 }
 
 .package-detail-section {
-    padding-bottom: 120px;
+    padding-bottom: 72px;
 }
 
 .package-detail-hero {
@@ -71,7 +71,7 @@ img {
     background: var(--uw-white);
     box-shadow: var(--uw-shadow-soft);
     overflow: hidden;
-    margin-bottom: 34px;
+    margin-bottom: 26px;
 }
 
 .package-detail-media {
@@ -194,14 +194,69 @@ img {
 .package-content-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 340px;
-    gap: 28px;
+    gap: 22px;
     align-items: start;
 }
 
 .package-main-content,
 .package-side-content {
     display: grid;
-    gap: 22px;
+    gap: 18px;
+}
+
+.related-discovery-section {
+    border-top: 1px solid var(--uw-line);
+}
+
+.travel-discovery-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 auto 28px;
+}
+
+.travel-discovery-label,
+.travel-discovery-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 9px 15px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.travel-discovery-label {
+    gap: 8px;
+    background: var(--uw-primary-dark);
+    color: var(--uw-white);
+}
+
+.travel-discovery-links a {
+    border: 1px solid var(--uw-line);
+    background: var(--uw-white);
+    color: var(--uw-ink);
+}
+
+.travel-discovery-links a:hover,
+.travel-discovery-links a:focus-visible {
+    border-color: var(--uw-primary);
+    background: var(--uw-primary-soft);
+    color: var(--uw-primary-dark);
+    box-shadow: 0 8px 20px rgba(6, 79, 104, 0.1);
+}
+
+.related-tour-grid .package-card-media,
+.related-tour-grid .package-card-media img {
+    height: 260px;
+    flex-basis: 260px;
+}
+
+.related-tour-grid .package-card h3 {
+    font-size: 1.18rem;
+    line-height: 1.35;
 }
 
 .package-nav-card {
@@ -595,12 +650,19 @@ img {
     align-items: center;
     position: relative;
     color: var(--uw-white);
-    background:
-        linear-gradient(90deg, rgba(6, 41, 58, 0.94) 0%, rgba(6, 79, 104, 0.75) 48%, rgba(8, 118, 147, 0.28) 100%),
-        url("../images/hero-travel.svg") center/cover no-repeat;
+    background: linear-gradient(90deg, rgba(6, 41, 58, 0.94) 0%, rgba(6, 79, 104, 0.75) 48%, rgba(8, 118, 147, 0.28) 100%);
     isolation: isolate;
     overflow: hidden;
 }
+
+.hero-carousel,
+.hero-carousel .swiper-wrapper,
+.hero-carousel .swiper-slide,
+.hero-carousel-slide { position: absolute; inset: 0; z-index: 0; }
+.hero-carousel .swiper-slide { opacity: 0; transition: opacity .7s ease; }
+.hero-carousel .swiper-slide-active { opacity: 1; }
+.hero-media { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+.hero-section::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(6,41,58,.94), rgba(6,79,104,.75) 48%, rgba(8,118,147,.28)); }
 
 .parallax-hero {
     background-position: center var(--parallax-y, 0px);
@@ -650,6 +712,11 @@ img {
     padding: 88px 0 160px;
 }
 
+.hero-scroll-cue { position: absolute; left: 50%; bottom: 42px; z-index: 3; display: inline-flex; align-items: center; gap: .6rem; color: rgba(255,255,255,.92); font-size: .82rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; text-decoration: none; transform: translateX(-50%); white-space: nowrap; }
+.hero-scroll-cue i { display: grid; place-items: center; width: 2rem; height: 2rem; border: 1px solid rgba(255,255,255,.42); border-radius: 50%; animation: uw-scroll-cue 1.7s ease-in-out infinite; }
+@keyframes uw-scroll-cue { 50% { transform: translateY(5px); } }
+@media (prefers-reduced-motion: reduce) { .hero-scroll-cue i { animation: none; } }
+
 .hero-kicker {
     display: inline-flex;
     align-items: center;
@@ -682,7 +749,7 @@ img {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
     max-width: 620px;
-    margin-top: 34px;
+    margin: 0 0 28px;
 }
 
 .hero-stat {
@@ -835,6 +902,67 @@ img {
 .blog-card,
 .gallery-card {
     overflow: hidden;
+    width: 100%;
+}
+
+/* Equal-height card collections: grid columns and carousel slides stretch
+   their cards without clipping variable-length titles or descriptions. */
+.equal-card-grid {
+    display: grid;
+    grid-auto-rows: 1fr;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.equal-card-grid.g-3 {
+    gap: 1rem;
+}
+
+.equal-card-grid > [class*="col-"] {
+    display: flex;
+    width: auto;
+    max-width: none;
+    padding-right: 0;
+    padding-left: 0;
+}
+
+.equal-card-grid > [class*="col-"] > .destination-card,
+.equal-card-grid > [class*="col-"] > .package-card,
+.equal-card-grid > [class*="col-"] > .service-card,
+.equal-card-grid > [class*="col-"] > .blog-card,
+.equal-card-grid > [class*="col-"] > .contact-info-card,
+.equal-card-grid > [class*="col-"] > .gallery-card,
+.equal-card-grid > [class*="col-"] > .card {
+    width: 100%;
+}
+
+.destination-carousel .swiper-wrapper,
+.testimonial-carousel .swiper-wrapper {
+    align-items: stretch;
+}
+
+.destination-carousel .swiper-slide,
+.testimonial-carousel .swiper-slide {
+    display: flex;
+    height: auto;
+}
+
+.destination-carousel .swiper-slide > .destination-card,
+.testimonial-carousel .swiper-slide > .testimonial-card {
+    width: 100%;
+}
+
+.destination-card,
+.package-card,
+.blog-card,
+.gallery-card.d-block,
+.testimonial-card,
+.service-card,
+.contact-info-card {
+    display: flex !important;
+    flex-direction: column;
 }
 
 .destination-card:hover,
@@ -859,8 +987,48 @@ img {
     object-fit: cover;
 }
 
+.destination-card > .glightbox,
+.package-card-media {
+    display: block;
+    flex: 0 0 235px;
+    height: 235px;
+    overflow: hidden;
+}
+
+.destination-card > .glightbox img,
+.package-card-media img {
+    height: 100%;
+}
+
 .card-body-pad {
     padding: 22px;
+}
+
+.destination-card .card-body-pad,
+.package-card .card-body-pad,
+.blog-card .card-body-pad,
+.gallery-card .card-body-pad {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+.destination-card .card-body-pad > p,
+.package-card .card-body-pad > p,
+.blog-card .card-body-pad > p,
+.gallery-card .card-body-pad > p {
+    flex-grow: 1;
+}
+
+.destination-card .card-body-pad > .btn-outline-brand,
+.blog-card .card-body-pad > .btn-outline-brand {
+    align-self: flex-start;
+    margin-top: auto;
+}
+
+.package-card .card-body-pad > .d-flex:last-child,
+.testimonial-card > .d-flex:last-child {
+    margin-top: auto !important;
 }
 
 .destination-meta,
@@ -1058,7 +1226,7 @@ img {
 .floating-quote-btn {
     position: fixed;
     right: 24px;
-    bottom: 84px;
+    bottom: 24px;
     min-height: 46px;
     display: inline-flex;
     align-items: center;
@@ -1071,6 +1239,8 @@ img {
     box-shadow: 0 14px 32px rgba(246, 161, 58, 0.26);
     z-index: 1030;
 }
+
+.go-top-btn { bottom: 84px; }
 
 .floating-quote-btn:hover,
 .floating-quote-btn:focus {
@@ -1169,7 +1339,7 @@ img {
 }
 
 .page-banner {
-    padding: 124px 0;
+    padding: 84px 0;
     background:
         linear-gradient(90deg, rgba(6, 41, 58, 0.94), rgba(8, 118, 147, 0.46)),
         url("../images/page-banner.svg") center/cover no-repeat;
@@ -1178,7 +1348,7 @@ img {
 
 .page-banner h1 {
     font-family: "Playfair Display", serif;
-    font-size: 56px;
+    font-size: 48px;
     font-weight: 800;
 }
 
@@ -1247,19 +1417,30 @@ img {
     font-weight: 900;
 }
 
-.owl-nav button.owl-prev,
-.owl-nav button.owl-next {
+.swiper-button-prev,
+.swiper-button-next {
     width: 42px;
     height: 42px;
-    border-radius: 7px !important;
-    background: var(--uw-white) !important;
-    color: var(--uw-ink) !important;
+    border-radius: 7px;
+    background: var(--uw-white);
+    color: var(--uw-ink);
     box-shadow: 0 8px 20px rgba(6, 79, 104, 0.12);
 }
 
-.owl-nav button:hover {
-    background: var(--uw-primary) !important;
-    color: var(--uw-white) !important;
+.swiper-button-prev::after,
+.swiper-button-next::after {
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.swiper-button-prev:hover,
+.swiper-button-next:hover {
+    background: var(--uw-primary);
+    color: var(--uw-white);
+}
+
+.swiper-pagination-bullet-active {
+    background: var(--uw-primary);
 }
 
 @media (prefers-reduced-motion: reduce) {

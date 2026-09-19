@@ -1,9 +1,10 @@
 @extends('frontend.layouts.app')
 
-@section('title', 'Contact Us - UniWorld Holidays')
+@section('title', 'Plan Your Holiday | Contact UniWorld Holidays')
+@section('meta_description', 'Speak with a UniWorld Holidays travel consultant about your destination, dates, traveller needs and preferred budget for a personalised itinerary proposal.')
 
 @section('content')
-    @include('frontend.components.page-banner', ['title' => 'Contact Us', 'subtitle' => 'Get in touch with our travel experts'])
+    @include('frontend.components.page-banner', ['title' => 'Plan Your Holiday', 'subtitle' => 'Start with a conversation about the journey you have in mind'])
 
     <section class="section-padding">
         <div class="container">
@@ -29,11 +30,11 @@
             @endif
 
             <div class="row g-5">
-                <div class="col-lg-5" data-aos="fade-right">
-                    <span class="section-kicker"><i class="fa-solid fa-headset"></i> Contact</span>
-                    <h2 class="section-title">Tell us where you want to go.</h2>
-                    <p class="section-text mb-4">Fill the form and our travel experts will get back to you within 2 hours with a customised itinerary and quotation.</p>
-                    <div class="row g-3">
+                <div class="col-lg-5" data-animate="fade-right">
+                    <span class="section-kicker"><i class="fa-solid fa-headset"></i> Travel consultation</span>
+                    <h2 class="section-title">Tell us what a successful holiday looks like to you.</h2>
+                    <p class="section-text mb-4">Share your dates, travellers, interests and budget range. A consultant will review your brief and normally respond within one business day.</p>
+                    <div class="row g-3 equal-card-grid equal-card-grid--2">
                         <div class="col-sm-6">
                             <div class="contact-info-card">
                                 <span class="icon-box"><i class="fa-solid fa-phone"></i></span>
@@ -64,30 +65,30 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-7" data-aos="fade-left">
+                <div class="col-lg-7" data-animate="fade-left">
                     <div id="formSuccess" class="alert alert-success d-none">
-                        <i class="fa-solid fa-check-circle me-2"></i> <strong>Thank you!</strong> Your enquiry has been submitted. We will contact you shortly.
+                        <i class="fa-solid fa-check-circle me-2"></i> <strong>Thank you.</strong> Your travel brief has been received. A consultant will contact you shortly.
                     </div>
                     <form class="row g-3 needs-validation" id="contactForm" action="{{ route('frontend.contact.submit') }}" method="POST" novalidate>
                         @csrf
                         <div class="col-md-6">
                             <label class="form-label" for="name">Full Name <span class="text-danger">*</span></label>
-                            <input class="form-control" id="name" name="name" type="text" placeholder="Your name" value="{{ old('name') }}" required minlength="2">
+                            <input class="form-control" id="name" name="name" type="text" placeholder="Your name" value="{{ old('name', request('name')) }}" autocomplete="name" required minlength="2" maxlength="255">
                             <div class="invalid-feedback">Please enter your name.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="phone">Phone Number <span class="text-danger">*</span></label>
-                            <input class="form-control" id="phone" name="phone" type="tel" placeholder="Your phone" value="{{ old('phone') }}" required minlength="10" pattern="[0-9+\s\-]{10,20}">
+                            <input class="form-control" id="phone" name="phone" type="tel" placeholder="Your phone" value="{{ old('phone', request('phone')) }}" autocomplete="tel" required minlength="10" maxlength="20" pattern="[0-9+\s\-]{10,20}">
                             <div class="invalid-feedback">Please enter a valid phone number (min 10 digits).</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="email">Email</label>
-                            <input class="form-control" id="email" name="email" type="email" placeholder="Your email" value="{{ old('email') }}">
+                            <input class="form-control" id="email" name="email" type="email" placeholder="Your email" value="{{ old('email', request('email')) }}" autocomplete="email" maxlength="255">
                             <div class="invalid-feedback">Please enter a valid email address.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="travel_date">Travel Date</label>
-                            <input class="form-control date-picker" id="travel_date" name="travel_date" type="text" placeholder="Select date" value="{{ old('travel_date') }}">
+                            <input class="form-control date-picker" id="travel_date" name="travel_date" type="text" placeholder="Select date" value="{{ old('travel_date', request('travel_date')) }}" autocomplete="off">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="destination">Destination</label>
@@ -95,19 +96,35 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="adults">Adults</label>
-                            <input class="form-control" id="adults" name="adults" type="number" min="1" max="50" value="{{ old('adults', 2) }}">
+                            <input class="form-control" id="adults" name="adults" type="number" min="1" max="50" value="{{ old('adults', request('adults', 2)) }}">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="children">Children</label>
                             <input class="form-control" id="children" name="children" type="number" min="0" max="20" value="{{ old('children', 0) }}">
                         </div>
                         <div class="col-12">
-                            <label class="form-label" for="message">Message / Requirements</label>
-                            <textarea class="form-control" id="message" name="message" rows="4" placeholder="Tell us about your trip — dates, preferences, budget, special requirements...">{{ old('message') }}</textarea>
+                            <label class="form-label" for="budget_range">Approximate Budget</label>
+                            <select class="form-select" id="budget_range" name="budget_range">
+                                <option value="">Select a budget (optional)</option>
+                                @foreach(['Under ₹50,000', '₹50,000 - ₹1,00,000', 'Above ₹1,00,000'] as $budget)
+                                    <option value="{{ $budget }}" @selected(old('budget_range', request('budget_range')) === $budget)>{{ $budget }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="message">Travel Preferences</label>
+                            <textarea class="form-control" id="message" name="message" rows="4" placeholder="Tell us about preferred places, hotel style, pace, celebrations, accessibility or dietary needs...">{{ old('message') }}</textarea>
+                        </div>
+                        <div class="col-12 form-check ms-2">
+                            <input class="form-check-input" id="privacy_acceptance" name="privacy_acceptance" type="checkbox" value="1" required @checked(old('privacy_acceptance'))>
+                            <label class="form-check-label" for="privacy_acceptance">
+                                I agree that UniWorld Holidays may use my details to respond to this enquiry, as described in the <a href="{{ route('frontend.privacy') }}" target="_blank" rel="noopener">Privacy Policy<span class="visually-hidden"> (opens in a new tab)</span></a>.
+                            </label>
+                            <div class="invalid-feedback">Please accept the Privacy Policy to continue.</div>
                         </div>
                         <div class="col-12">
                             <button class="btn-brand" type="submit" id="submitBtn">
-                                <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+                                <i class="fa-solid fa-paper-plane"></i> Submit Travel Brief
                             </button>
                         </div>
                     </form>
@@ -158,17 +175,14 @@
         .then(data => {
             form.classList.add('d-none');
             successDiv.classList.remove('d-none');
-            window.scrollTo({ top: successDiv.offsetTop - 100, behavior: 'smooth' });
+                window.scrollTo({ top: successDiv.offsetTop - 100, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         })
         .catch(err => {
             // Show server validation errors
             if (err.errors) {
                 let msg = Object.values(err.errors).flat().join('\n');
                 alert(msg);
-            } else {
-                // Fallback: normal form submit
-                form.submit();
-            }
+            } else alert('We could not submit your enquiry. Please try again.');
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Enquiry';
         });

@@ -3,7 +3,7 @@
 @section('title', ($page->meta_title ?? $page->title) . ' — UniWorld Holidays')
 @section('meta_description', $page->meta_description ?? '')
 @section('og_image_meta')
-@if($page->og_image)<meta property="og:image" content="{{ asset('storage/' . $page->og_image) }}">@endif
+@if($page->og_image)<meta property="og:image" content="{{ media_url($page->og_image) }}">@endif
 @endsection
 
 @section('content')

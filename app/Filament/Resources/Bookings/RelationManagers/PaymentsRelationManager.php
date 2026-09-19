@@ -4,10 +4,7 @@ namespace App\Filament\Resources\Bookings\RelationManagers;
 
 use App\Models\Booking;
 use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -132,18 +129,10 @@ class PaymentsRelationManager extends RelationManager
             ])
             ->recordActions([
                 EditAction::make()
+                    ->visible(fn (): bool => auth()->user()?->isSuperAdmin() === true)
                     ->after(function () {
                         $this->updateBookingBalance();
                     }),
-                DeleteAction::make()
-                    ->after(function () {
-                        $this->updateBookingBalance();
-                    }),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 

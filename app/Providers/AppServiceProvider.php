@@ -17,6 +17,7 @@ use App\Observers\EnquiryObserver;
 use App\Observers\PaymentObserver;
 use App\Observers\QuotationObserver;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,6 +29,14 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Operational records and their audit trails are retained for accountability.
+        // Deactivation is the supported alternative to deletion in the admin panel.
+        Gate::before(function ($user, string $ability): ?bool {
+            return in_array($ability, ['delete', 'deleteAny', 'forceDelete', 'forceDeleteAny'], true)
+                ? false
+                : null;
+        });
+
         // Slow query logging in local environment
         if ($this->app->isLocal()) {
             DB::listen(function ($query) {

@@ -20,6 +20,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -51,6 +52,7 @@ class BannerResource extends Resource
                 Textarea::make('description')->rows(3)->columnSpanFull(),
                 TextInput::make('cta_text')->label('Button Text')->placeholder('e.g. Explore Now'),
                 TextInput::make('cta_url')->label('Button URL')->url()->placeholder('https://...'),
+                Select::make('media_type')->options(['image' => 'Image', 'video' => 'Autoplay video'])->default('image')->required()->live(),
                 Select::make('position')->options([
                     'homepage_hero' => 'Homepage Hero',
                     'homepage_mid' => 'Homepage Middle',
@@ -58,8 +60,10 @@ class BannerResource extends Resource
                     'popup' => 'Popup',
                 ])->default('homepage_hero'),
                 TextInput::make('sort_order')->numeric()->default(0),
-                FileUpload::make('image')->image()->directory('banners')->maxSize(2048)->columnSpanFull(),
+                FileUpload::make('image')->image()->directory('banners')->maxSize(2048)->visible(fn (callable $get): bool => $get('media_type') === 'image')->columnSpanFull(),
                 FileUpload::make('mobile_image')->image()->directory('banners/mobile')->maxSize(1024)->label('Mobile Image'),
+                FileUpload::make('video_path')->label('Autoplay video')->acceptedFileTypes(['video/mp4', 'video/webm'])->directory('banners/video')->maxSize(15360)->visible(fn (callable $get): bool => $get('media_type') === 'video')->helperText('Muted, looping autoplay video. Keep it short and compressed for page speed.'),
+                FileUpload::make('video_poster')->label('Video poster image')->image()->directory('banners/posters')->maxSize(1024)->visible(fn (callable $get): bool => $get('media_type') === 'video')->helperText('Shown before the video is ready.'),
                 Toggle::make('is_active')->default(true),
                 DateTimePicker::make('starts_at')->label('Start Date'),
                 DateTimePicker::make('ends_at')->label('End Date'),
@@ -70,10 +74,12 @@ class BannerResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->defaultSort('sort_order')->reorderable('sort_order')->columns([
-            ImageColumn::make('image')->size(60),
+            ImageColumn::make('image')
+                ->defaultImageUrl(asset('assets/frontend/images/image-placeholder.svg'))
+                ->size(60),
             TextColumn::make('title')->searchable()->sortable()->limit(35),
             TextColumn::make('position')->badge()->color('gray'),
-            IconColumn::make('is_active')->boolean(),
+            ToggleColumn::make('is_active')->label('Active')->tooltip('Show or hide this banner.'),
             TextColumn::make('starts_at')->date()->placeholder('Always'),
             TextColumn::make('ends_at')->date()->placeholder('Never'),
             TextColumn::make('sort_order')->numeric()->sortable(),

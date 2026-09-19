@@ -52,10 +52,10 @@ class TodaysCallingList extends TableWidget
                 TextColumn::make('type')
                     ->badge()
                     ->formatStateUsing(fn (string $state) => match ($state) {
-                        'call' => '📞 Call',
-                        'whatsapp' => '💬 WA',
-                        'email' => '📧 Email',
-                        'meeting' => '🤝 Meet',
+                        'call' => 'Call',
+                        'whatsapp' => 'WhatsApp',
+                        'email' => 'Email',
+                        'meeting' => 'Meeting',
                         default => $state,
                     })
                     ->color('gray'),

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Destinations\Schemas;
 
+use App\Models\Destination;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -13,6 +14,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Str;
 
 class DestinationForm
 {
@@ -29,12 +31,29 @@ class DestinationForm
                             ->schema([
                                 TextInput::make('name')
                                     ->required()
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug((string) $state)))
                                     ->maxLength(255),
                                 TextInput::make('slug')
                                     ->maxLength(255)
                                     ->helperText('Auto-generated from name.'),
-                                TextInput::make('country')
-                                    ->maxLength(255),
+                                Select::make('country')
+                                    ->options(fn () => collect(array_unique(array_filter(array_merge(
+                                        ['India', 'United Arab Emirates', 'Indonesia', 'Maldives', 'Singapore', 'Thailand', 'Sri Lanka', 'Vietnam', 'United Kingdom', 'United States'],
+                                        Destination::query()->whereNotNull('country')->pluck('country')->all(),
+                                    ))))->mapWithKeys(fn (string $country) => [$country => $country])->all())
+                                    ->searchable()
+                                    ->live()
+                                    ->placeholder('Select country'),
+                                Select::make('state')
+                                    ->options(fn (callable $get) => static::statesFor($get('country')))
+                                    ->searchable()
+                                    ->live()
+                                    ->placeholder('Select or search state'),
+                                Select::make('city')
+                                    ->options(fn (callable $get) => static::citiesFor($get('country'), $get('state')))
+                                    ->searchable()
+                                    ->placeholder('Select or search city'),
                                 Select::make('continent')
                                     ->options([
                                         'Domestic' => 'Domestic',
@@ -114,5 +133,37 @@ class DestinationForm
                             ]),
                     ]),
             ]);
+    }
+
+    private const LOCATION_DATA = [
+        'India' => [
+            'Gujarat' => ['Ahmedabad', 'Vadodara', 'Surat'],
+            'Goa' => ['Panaji', 'Calangute', 'Margao'],
+            'Himachal Pradesh' => ['Shimla', 'Manali', 'Dharamshala'],
+            'Jammu and Kashmir' => ['Srinagar', 'Gulmarg', 'Pahalgam'],
+            'Kerala' => ['Kochi', 'Munnar', 'Alleppey'],
+            'Rajasthan' => ['Jaipur', 'Udaipur', 'Jaisalmer'],
+        ],
+        'United Arab Emirates' => ['Dubai' => ['Dubai'], 'Abu Dhabi' => ['Abu Dhabi']],
+        'Indonesia' => ['Bali' => ['Denpasar', 'Ubud', 'Kuta']],
+        'Maldives' => ['Kaafu Atoll' => ['Malé']],
+        'Singapore' => ['Singapore' => ['Singapore']],
+        'Thailand' => ['Bangkok' => ['Bangkok'], 'Phuket' => ['Phuket']],
+    ];
+
+    private static function statesFor(?string $country): array
+    {
+        $stored = Destination::query()->where('country', $country)->whereNotNull('state')->pluck('state')->all();
+        $states = array_unique(array_merge(array_keys(self::LOCATION_DATA[$country] ?? []), $stored));
+
+        return collect($states)->sort()->mapWithKeys(fn (string $state) => [$state => $state])->all();
+    }
+
+    private static function citiesFor(?string $country, ?string $state): array
+    {
+        $stored = Destination::query()->where('country', $country)->when($state, fn ($query) => $query->where('state', $state))->whereNotNull('city')->pluck('city')->all();
+        $cities = array_unique(array_merge(self::LOCATION_DATA[$country][$state] ?? [], $stored));
+
+        return collect($cities)->sort()->mapWithKeys(fn (string $city) => [$city => $city])->all();
     }
 }

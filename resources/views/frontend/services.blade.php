@@ -1,18 +1,19 @@
 @extends('frontend.layouts.app')
 
-@section('title', 'Our Services - UniWorld Holidays')
+@section('title', 'Travel Planning Services | UniWorld Holidays')
+@section('meta_description', 'Explore personalised holiday planning, hotel selection, flights, transfers, visa guidance and corporate travel coordination from UniWorld Holidays.')
 
 @section('content')
-    @include('frontend.components.page-banner', ['title' => 'Our Services', 'subtitle' => 'Complete travel solutions under one roof'])
+    @include('frontend.components.page-banner', ['title' => 'Travel Services', 'subtitle' => 'Connected planning for every stage of your journey'])
 
     <section class="section-padding">
         <div class="container">
             <div class="row justify-content-center mb-5">
                 <div class="col-lg-8 text-center">
-                    <p class="lead text-muted">From planning your itinerary to ensuring a smooth return, we handle every aspect of your journey with precision and care.</p>
+                    <p class="lead text-muted">Choose individual services or let one consultant coordinate the complete journey—from route design and reservations to documentation guidance and on-trip support.</p>
                 </div>
             </div>
-            <div class="row g-4">
+            <div class="row g-4 equal-card-grid equal-card-grid--3">
                 @php
                     $services = $services ?? collect();
                 @endphp

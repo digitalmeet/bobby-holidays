@@ -22,6 +22,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -92,7 +93,7 @@ class CmsPageResource extends Resource
         return $table->defaultSort('title')->columns([
             TextColumn::make('title')->searchable()->sortable(),
             TextColumn::make('slug')->searchable()->color('gray')->prefix('/page/'),
-            IconColumn::make('is_published')->boolean()->label('Published'),
+            ToggleColumn::make('is_published')->label('Active')->tooltip('Show or hide this page on the website.'),
             TextColumn::make('updated_at')->label('Last Updated')->since()->sortable(),
         ])->filters([
             TernaryFilter::make('is_published')->label('Published'),

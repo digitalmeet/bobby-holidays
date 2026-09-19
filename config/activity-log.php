@@ -16,6 +16,7 @@ return [
         'quotation_logs',
         'payment_logs',
         'online_payment_logs',
+        'setting_logs',
         'tour_logs',
         'page_logs',
     ],

@@ -1,6 +1,7 @@
 @extends('frontend.layouts.app')
 
-@section('title', 'Terms and Conditions - UniWorld Holidays')
+@section('title', 'Booking Terms & Conditions | UniWorld Holidays')
+@section('meta_description', 'Review the booking, payment, cancellation, amendment and traveller responsibility terms that apply to UniWorld Holidays services.')
 
 @section('content')
     <div id="reading-progress"></div>

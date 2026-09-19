@@ -34,21 +34,21 @@ class ListFollowUps extends ListRecords
                         ->required(),
                     Select::make('type')
                         ->options([
-                            'call' => '📞 Phone Call',
-                            'whatsapp' => '💬 WhatsApp',
-                            'email' => '📧 Email',
-                            'meeting' => '🤝 Meeting',
-                            'note' => '📝 Note',
+                            'call' => 'Phone Call',
+                            'whatsapp' => 'WhatsApp',
+                            'email' => 'Email',
+                            'meeting' => 'Meeting',
+                            'note' => 'Note',
                         ])
                         ->default('call')
                         ->required(),
                     Select::make('status')
                         ->options([
-                            'completed' => '✅ Completed',
-                            'no_answer' => '📵 No Answer',
-                            'busy' => '🔴 Busy',
-                            'rescheduled' => '🔄 Rescheduled',
-                            'callback' => '📲 Callback',
+                            'completed' => 'Completed',
+                            'no_answer' => 'No Answer',
+                            'busy' => 'Busy',
+                            'rescheduled' => 'Rescheduled',
+                            'callback' => 'Callback',
                         ])
                         ->default('completed')
                         ->required(),

@@ -23,6 +23,9 @@ class Enquiry extends Model
         'email',
         'phone',
         'country',
+        'address',
+        'destination_other',
+        'tour_other',
         'travel_date',
         'flexible_dates',
         'duration_days',
@@ -30,6 +33,8 @@ class Enquiry extends Model
         'children',
         'infants',
         'budget_range',
+        'budget_min',
+        'budget_max',
         'message',
         'status',
         'source',
@@ -39,6 +44,9 @@ class Enquiry extends Model
         'internal_notes',
         'ip_address',
         'user_agent',
+        'privacy_accepted_at',
+        'privacy_policy_version',
+        'consent_source',
     ];
 
     /**
@@ -53,8 +61,11 @@ class Enquiry extends Model
         'adults' => 'integer',
         'children' => 'integer',
         'infants' => 'integer',
+        'budget_min' => 'integer',
+        'budget_max' => 'integer',
         'last_contacted_at' => 'datetime',
         'follow_up_at' => 'datetime',
+        'privacy_accepted_at' => 'datetime',
     ];
 
     /**

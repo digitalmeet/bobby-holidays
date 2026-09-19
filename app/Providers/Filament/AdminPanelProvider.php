@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Models\User;
+use App\Models\Setting;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -15,6 +16,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\View\PanelsRenderHook;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -32,9 +34,9 @@ class AdminPanelProvider extends PanelProvider
             ->topNavigation(false)
             ->spaUrlExceptions(['*/admin/logout'])
             ->brandName('UniWorld Holidays')
-            ->brandLogo(asset('assets/frontend/images/uniworld-logo-cropped.png'))
-            ->darkModeBrandLogo(asset('assets/frontend/images/uniworld-logo-cropped.png'))
-            ->brandLogoHeight('2.5rem')
+            ->brandLogo(fn () => media_url(Setting::valueFor('site_logo'), 'assets/frontend/images/uniworld-logo-cropped.png'))
+            ->darkModeBrandLogo(fn () => media_url(Setting::valueFor('site_logo'), 'assets/frontend/images/uniworld-logo-cropped.png'))
+            ->brandLogoHeight('3rem')
             ->favicon(asset('assets/frontend/images/uniworld-logo-cropped.png'))
             ->colors([
                 'primary' => Color::hex('#064f68'),
@@ -53,6 +55,10 @@ class AdminPanelProvider extends PanelProvider
             ->darkMode(true)
             ->sidebarCollapsibleOnDesktop()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn () => view('filament._admin-polish'),
+            )
             ->authGuard('web')
             ->authPasswordBroker('users')
             ->middleware([

@@ -10,19 +10,30 @@ use Illuminate\Support\Facades\Route;
 
 // Health Check
 Route::get('/health', function () {
+    $checks = ['db' => 'failed', 'cache' => 'failed'];
+
     try {
         DB::connection()->getPdo();
-        $db = 'connected';
-    } catch (\Throwable $e) {
-        $db = 'failed';
+        $checks['db'] = 'ok';
+    } catch (\Throwable) {
+        // Report through the response without exposing connection details.
     }
-    Cache::put('health_ping', true, 10);
+
+    try {
+        $key = 'health_ping_'.bin2hex(random_bytes(8));
+        Cache::put($key, true, 10);
+        $checks['cache'] = Cache::pull($key) === true ? 'ok' : 'failed';
+    } catch (\Throwable) {
+        // Report through the response without exposing cache details.
+    }
+
+    $healthy = ! in_array('failed', $checks, true);
+
     return response()->json([
-        'status' => 'ok',
-        'db' => $db,
-        'cache' => Cache::get('health_ping') ? 'ok' : 'failed',
+        'status' => $healthy ? 'ok' : 'degraded',
+        'checks' => $checks,
         'timestamp' => now()->toIso8601String(),
-    ]);
+    ], $healthy ? 200 : 503)->header('Cache-Control', 'no-store, private');
 })->name('health');
 
 // Public Quotation Routes

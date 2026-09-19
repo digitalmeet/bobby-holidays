@@ -1,5 +1,6 @@
 # UniWorld Holidays — System Handoff Document
-**Last Updated:** 2026-07-01 | **Project:** bobby-holidays | **Brand:** UniWorld Holidays
+
+**Last Updated:** July 2026 | **Project:** bobby-holidays | **Brand:** UniWorld Holidays
 
 ---
 
@@ -10,27 +11,76 @@
 | Admin URL | http://bobby-holidays.test/admin |
 | Admin Login | admin@uniworldholidays.com / password |
 | Frontend URL | http://bobby-holidays.test |
+| Health Check | http://bobby-holidays.test/health |
 | Laravel | 13.15.0 |
 | PHP | 8.4.12 |
 | Filament | 5.6.7 |
 | Livewire | 4.3.1 |
 | Database | MySQL 8.x, DB: bobby_holidays |
-| Tables | 32 |
-| Routes | 62 GET + POST |
-| Filament Resources | 13 |
+| Tables | 43 |
+| Routes | 78 GET + 8 POST |
+| Filament Resources | 14 |
 | Dashboard Widgets | 4 |
 | Report Pages | 3 |
+| Custom Pages | 2 (Dashboard, ManageSettings) |
+| Brand Color | #064f68 |
+| Cache/Session Driver | database |
 
 ---
 
-## CODING STANDARDS (Filament 5.x)
+## ARCHITECTURE OVERVIEW
+
+```
+bobby-holidays/
+├── app/
+│   ├── Console/Commands/          # 3 commands (ExpireQuotations, GenerateSitemap, SendFollowUpReminders)
+│   ├── Filament/
+│   │   ├── Pages/                 # Dashboard, ManageSettings, SalesReport, RevenueReport, BookingsReport
+│   │   ├── Resources/            # 14 resources (Banners, Bookings, CmsPages, Destinations, Enquiries, Faqs, FollowUps, Posts, Quotations, Roles, Settings, Testimonials, Tours, Users)
+│   │   └── Widgets/              # 4 widgets (StatsOverview, TodaysCallingList, RecentEnquiries, RecentPayments)
+│   ├── Http/
+│   │   ├── Controllers/          # FrontendController, ContactController, QuotationController, PaymentController
+│   │   └── Middleware/           # AdminPanelAccess, CacheHeaders
+│   ├── Models/                   # All Eloquent models
+│   ├── Observers/                # CacheBustObserver, EnquiryObserver, PaymentObserver, QuotationObserver
+│   ├── Policies/                 # Per-resource authorization
+│   ├── Providers/                # AppServiceProvider, Filament/AdminPanelProvider
+│   └── Traits/                   # LogsActivity
+├── config/
+│   ├── activity-log.php          # Known log tables array (replaces Schema::hasTable)
+│   └── admin-modules.php         # Permission module definitions
+├── database/
+│   ├── migrations/               # All migrations including composite indexes
+│   └── seeders/                  # RolesAndPermissions, AdminUser, DemoData, Services
+├── public/
+│   ├── assets/frontend/
+│   │   ├── css/                  # style.css, responsive.css
+│   │   ├── js/                   # main.js (vanilla JS, zero jQuery)
+│   │   └── images/              # SVG placeholders, logo
+│   ├── robots.txt               # Disallows /admin, /livewire, /pay, /quote
+│   └── sitemap.xml              # Auto-generated daily at 03:00
+├── resources/views/
+│   ├── errors/                   # 403, 404, 500, 503 branded pages
+│   └── frontend/                # All public-facing Blade views
+├── routes/
+│   ├── web.php                  # Frontend + quotation + payment routes
+│   └── console.php             # 3 scheduled commands
+├── HANDOFF.md                   # This file
+├── ISSUES.md                    # Audit findings + fix tracker (35 fixes applied)
+├── PROMPTS.md                   # 15 prompts used for initial fixes
+└── PAGESPEED_SEO.md            # Performance audit + implementation status
+```
+
+---
+
+## CODING STANDARDS (Filament 5.x / Laravel 13.x)
 
 ```
 LAYOUT components → Filament\Schemas\Components\*
   Section, Tabs, Tab, Fieldset
 
 INPUT components → Filament\Forms\Components\*
-  TextInput, Select, Toggle, RichEditor, FileUpload, Repeater, Placeholder, etc.
+  TextInput, Select, Toggle, RichEditor, FileUpload, Repeater, Placeholder
 
 ACTIONS → Filament\Actions\*
   Action, EditAction, DeleteAction, CreateAction (unified namespace)
@@ -45,25 +95,37 @@ PROPERTIES:
 BLADE:
   JSON-LD @context/@type → use @@context/@@type (escape @ for Blade)
   Never use @if(...)@section(...)@endif on same line
-  Never use @hasSection with $__env->yieldContent
   Use @section('name', $value) for inline sections (no @endsection needed)
+
+FRONTEND JS:
+  Vanilla JS only — NO jQuery
+  Swiper.js for carousels
+  IntersectionObserver for scroll animations (data-animate attribute)
+  GLightbox for lightboxes
+  Flatpickr for date pickers
 ```
 
 ---
 
-## DATABASE (32 tables in bobby_holidays)
+## DATABASE (43 tables)
 
 ### Core Business
-destinations, tours, tour_pricing, enquiries, follow_ups, quotations, quotation_sections, quotation_items, quotation_histories, bookings, travellers, payments, booking_status_histories, payment_histories, online_payments
+destinations, tours, tour_pricing, enquiries, follow_ups, quotations, quotation_sections, quotation_items, quotation_histories, bookings, booking_sequences, travellers, payments, booking_status_histories, payment_histories, online_payments
 
 ### CMS
 pages, posts, banners, testimonials, faqs, settings
 
 ### Activity Logs (per-module)
-enquiry_logs, booking_logs, quotation_logs, tour_logs, page_logs
+enquiry_logs, booking_logs, quotation_logs, tour_logs, page_logs, payment_logs, online_payment_logs
 
 ### System
 users, permissions, roles, model_has_permissions, model_has_roles, role_has_permissions, media, notifications, cache, cache_locks, jobs, job_batches, failed_jobs, sessions, migrations, password_reset_tokens
+
+### Composite Indexes (performance)
+- `enquiries(status, created_at)`
+- `bookings(status, created_at)`
+- `bookings(status, balance_amount)`
+- `payments(status, payment_date)`
 
 ---
 
@@ -73,12 +135,12 @@ users, permissions, roles, model_has_permissions, model_has_roles, role_has_perm
 Dashboard (4 widgets: Stats, Calling List, Recent Enquiries, Recent Payments)
 
 Sales Pipeline
-├── Enquiries (+ Interaction History tab)
-├── Quotations (+ Items relation manager)
+├── Enquiries (+ Interaction History tab) [badge: new count, cached 60s]
+├── Quotations (+ Items relation manager) [badge: draft count, cached 60s]
 └── Follow-ups & Calls
 
 Operations
-└── Bookings (+ Travellers + Payments tabs)
+└── Bookings (+ Travellers + Payments tabs) [badge: active count, cached 60s]
 
 Content Management
 ├── Destinations
@@ -86,7 +148,7 @@ Content Management
 
 CMS
 ├── Posts (Blog)
-├── Pages
+├── Pages (includes service pages with type='service')
 ├── Testimonials
 ├── Banners
 └── FAQs
@@ -97,9 +159,9 @@ User Management
 └── Site Settings (Company, Social, Quotation Defaults, SEO, Payment Gateway)
 
 Reports
-├── Sales Report
-├── Revenue Report
-└── Bookings Report
+├── Sales Report [cached 5 min]
+├── Revenue Report [cached 5 min]
+└── Bookings Report [cached 5 min]
 ```
 
 ---
@@ -113,18 +175,81 @@ Reports
 5. Payment recording with auto-balance calculation
 6. Razorpay integration (feature-flagged via settings)
 7. CMS pages, blog, FAQs, testimonials, banners
-8. Activity logging per module (separate tables)
+8. Activity logging per module (separate tables, config-based)
 9. Email on quotation send
 10. Repeat client detection
 11. Export to Excel (enquiries, bookings)
 12. SEO meta on all dynamic pages (admin-editable)
-13. InstantClick for SPA-like frontend speed
-14. Scheduled commands (auto-expiry, follow-up reminders)
-15. In-app notifications (new enquiry, quote viewed/accepted, payment received)
-16. Individual service pages with sidebar navigation
-17. Contact form + sticky enquiry bar (AJAX, source tracking)
-18. Role-based dashboard widgets
-19. WhatsApp integration on enquiries, bookings, follow-ups
+13. Scheduled commands (auto-expiry, follow-up reminders, sitemap)
+14. In-app notifications (new enquiry, quote viewed/accepted, payment received)
+15. Individual service pages with sidebar navigation (CMS-driven)
+16. Contact form + sticky enquiry bar (AJAX, source tracking)
+17. Role-based dashboard widgets
+18. WhatsApp integration on enquiries, bookings, follow-ups
+19. Booking reference atomic generation (UW-YYYY-000001 format)
+20. Soft deletes + audit trail on financial records (payments)
+
+---
+
+## FRONTEND PERFORMANCE STACK
+
+| Feature | Implementation |
+|---|---|
+| Carousels | Swiper.js 11 (vanilla JS) |
+| Animations | IntersectionObserver (`data-animate` attribute) |
+| Lightbox | GLightbox |
+| Date picker | Flatpickr |
+| Icons | Font Awesome 6.5.2 (solid + brands subsets only) |
+| CSS Framework | Bootstrap 5.3.3 |
+| JS Framework | None (vanilla JS, zero jQuery) |
+| Page caching | FrontendController Cache::remember (5-min TTL) |
+| Browser caching | CacheHeaders middleware (300s public, 600s s-maxage) |
+| Link prefetch | Hover-based prefetch (vanilla JS) |
+| Image loading | lazy + decoding=async + width/height on all cards |
+| Hero images | preload link on detail pages |
+| SEO | JSON-LD, sitemap, robots.txt, canonical, OG/Twitter meta |
+
+### JS/CSS Savings vs Original
+
+| Removed | Size |
+|---|---|
+| jQuery 3.7.1 | ~90 KB |
+| OwlCarousel JS + CSS | ~50 KB |
+| Font Awesome full → subset | ~60 KB |
+| AOS library | ~15 KB |
+| **Total saved** | **~215 KB per page** |
+
+---
+
+## OBSERVERS
+
+| Observer | Models | Purpose |
+|---|---|---|
+| EnquiryObserver | Enquiry | Notifies sales+admin on new enquiry |
+| QuotationObserver | Quotation | Notifies on viewed/accepted/rejected |
+| PaymentObserver | Payment | Notifies on payment received |
+| CacheBustObserver | Tour, Destination, Post, Testimonial, Faq, Page, Booking, Quotation | Invalidates frontend + admin caches on create/update/delete |
+
+---
+
+## CACHING STRATEGY
+
+| Cache Key | TTL | Invalidated By |
+|---|---|---|
+| home.tours | 300s | CacheBustObserver (Tour) |
+| home.destinations | 300s | CacheBustObserver (Destination) |
+| home.testimonials | 300s | CacheBustObserver (Testimonial) |
+| home.posts | 300s | CacheBustObserver (Post) |
+| frontend.destinations | 300s | CacheBustObserver (Destination) |
+| frontend.faq | 300s | CacheBustObserver (Faq) |
+| frontend.services | 300s | CacheBustObserver (Page) |
+| nav.enquiries.new | 60s | CacheBustObserver (Enquiry) |
+| nav.bookings.active | 60s | CacheBustObserver (Booking) |
+| nav.quotations.draft | 60s | CacheBustObserver (Quotation) |
+| dashboard_stats | 60s | CacheBustObserver (Booking, Quotation) |
+| report.sales | 300s | Manual (TTL expiry) |
+| report.revenue | 300s | Manual (TTL expiry) |
+| report.bookings | 300s | Manual (TTL expiry) |
 
 ---
 
@@ -134,32 +259,20 @@ Reports
 |---|---|---|
 | quotations:expire | Daily 00:30 | Auto-expire past-validity quotations |
 | enquiries:follow-up-reminders | Daily 09:00 | Notify assigned users of overdue follow-ups |
+| sitemap:generate | Daily 03:00 | Regenerate public/sitemap.xml |
 
 ---
 
-## OBSERVERS (AppServiceProvider)
+## MIDDLEWARE
 
-| Model | Triggers |
-|---|---|
-| Enquiry | Notifies sales+admin on new enquiry |
-| Quotation | Notifies on viewed/accepted/rejected |
-| Payment | Notifies on payment received |
-
----
-
-## TRAITS
-
-| Trait | Applied To | Purpose |
+| Middleware | Scope | Purpose |
 |---|---|---|
-| LogsActivity | Enquiry, Quotation, Booking, Tour, Page | Auto-logs create/update/delete to per-module tables |
-
----
-
-## HELPER FUNCTIONS
-
-| Function | Location | Purpose |
-|---|---|---|
-| setting($key, $default) | app/helpers.php | Read from settings table (cached 5 min) |
+| AdminPanelAccess | Admin panel | Role-based access control |
+| CacheHeaders | Global (appended) | Sets Cache-Control headers for guest GET requests |
+| throttle:60,1 | Admin panel | Rate limiting on admin routes |
+| throttle:5,1 | Quotation accept/reject | Prevents abuse of public POST |
+| throttle:10,1 | Contact form POST | Prevents spam submissions |
+| throttle:20,1 | Razorpay payment routes | Prevents payment abuse |
 
 ---
 
@@ -173,33 +286,31 @@ Reports
 
 ---
 
-## FRONTEND PERFORMANCE
+## HELPER FUNCTIONS
 
-- InstantClick.js for SPA-like prefetch on hover
-- Deferred CSS (flatpickr, glightbox) via media="print" onload
-- Deferred JS (flatpickr, glightbox) via defer attribute
-- Removed AOS.js and Select2 from global load
-- Google Analytics loads only if configured in settings
-- JSON-LD structured data for SEO
-- Canonical URLs on all pages
-- Open Graph + Twitter Card meta tags
+| Function | Location | Purpose |
+|---|---|---|
+| setting($key, $default) | app/helpers.php | Read from settings table (cached 5 min) |
 
 ---
 
-## DEPLOYMENT
+## TRAITS
 
-```bash
-php artisan migrate --force
-php artisan db:seed --class=RolesAndPermissionsSeeder
-php artisan db:seed --class=AdminUserSeeder
-php artisan storage:link
-php artisan config:cache
-php artisan route:cache
-php artisan event:cache
-php artisan view:cache
-php artisan filament:optimize
-# Cron: * * * * * php artisan schedule:run
-```
+| Trait | Applied To | Purpose |
+|---|---|---|
+| LogsActivity | Enquiry, Quotation, Booking, Tour, Page, Payment, OnlinePayment | Auto-logs create/update/delete to per-module tables |
+| SoftDeletes | Payment, OnlinePayment | Financial record protection |
+
+---
+
+## DEMO DATA
+
+| Entity | Count | Details |
+|---|---|---|
+| Tours | 13 | All active, 8 highlights, full itineraries, 8 inclusions, difficulty levels, meta |
+| Destinations | 10 | Rich descriptions, 8 highlights each |
+| Pricing Tiers | 39 | Standard + Deluxe + Premium per tour |
+| Users | 4 | super_admin, sales, operations, content |
 
 ---
 
@@ -211,3 +322,75 @@ php artisan filament:optimize
 | Sales | ravi@uniworldholidays.com | password | sales |
 | Operations | meena@uniworldholidays.com | password | operations |
 | Content | priya@uniworldholidays.com | password | content |
+
+---
+
+## DEPLOYMENT
+
+```bash
+# First-time setup
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan db:seed --class=RolesAndPermissionsSeeder
+php artisan db:seed --class=AdminUserSeeder
+php artisan storage:link
+
+# After every deploy
+php artisan optimize
+php artisan filament:optimize
+php artisan sitemap:generate
+
+# Cron (required for scheduled commands)
+* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+### Windows (Laragon) Specific
+
+```cmd
+icacls storage /grant Users:(OI)(CI)(M) /T
+icacls bootstrap\cache /grant Users:(OI)(CI)(M) /T
+```
+
+### Environment Variables (key ones)
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-domain.com
+DB_DATABASE=bobby_holidays
+CACHE_STORE=database
+SESSION_DRIVER=database
+QUEUE_CONNECTION=database
+```
+
+---
+
+## REMAINING ITEMS (Only 1)
+
+| # | Item | Effort | Notes |
+|---|---|---|---|
+| 1 | Install spatie/laravel-backup | 5 min | Requires `composer require spatie/laravel-backup` + schedule `backup:run --only-db` daily |
+
+Everything else is complete. All 15 PROMPTS.md fixes, all ISSUES.md items (35 fixes), and all PAGESPEED_SEO.md high/medium impact items are implemented.
+
+---
+
+## PRODUCTION READINESS CHECKLIST
+
+- [x] All critical bugs fixed (race conditions, infinite loops, injection)
+- [x] Rate limiting on all public POST endpoints
+- [x] Soft deletes on financial records
+- [x] Composite indexes for report queries at scale
+- [x] Cached navigation badges + report pages + frontend pages
+- [x] Slow query logging in development
+- [x] Health check endpoint (/health)
+- [x] Custom branded error pages
+- [x] SEO: sitemap, robots.txt, JSON-LD, canonical, OG meta
+- [x] Frontend: ~215KB JS/CSS removed, browser caching, image optimization
+- [x] Admin: unsaved changes alerts, throttle protection
+- [x] Scheduled commands: quotation expiry, follow-up reminders, sitemap
+- [ ] Install spatie/laravel-backup for automated DB backups
+- [ ] Configure production mail driver (for notifications)
+- [ ] Set up cron on production server
+- [ ] SSL certificate + force HTTPS
+- [ ] Set APP_DEBUG=false, APP_ENV=production

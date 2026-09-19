@@ -36,7 +36,7 @@ class QuotationItemsRelationManager extends RelationManager
                         'transfer' => '🚗 Transfer',
                         'activity' => '🎯 Activity',
                         'meal' => '🍽️ Meal',
-                        'visa' => '📋 Visa',
+                        'visa' => 'Visa',
                         'insurance' => '🛡️ Insurance',
                         'other' => '📦 Other',
                     ])
@@ -123,7 +123,7 @@ class QuotationItemsRelationManager extends RelationManager
                         'transfer' => '🚗 Transfer',
                         'activity' => '🎯 Activity',
                         'meal' => '🍽️ Meal',
-                        'visa' => '📋 Visa',
+                        'visa' => 'Visa',
                         'insurance' => '🛡️ Insurance',
                         'other' => '📦 Other',
                         default => $state,

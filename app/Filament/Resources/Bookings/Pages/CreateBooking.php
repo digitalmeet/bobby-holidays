@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Bookings\Pages;
 use App\Filament\Resources\Bookings\BookingResource;
 use App\Models\Quotation;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Validation\ValidationException;
 
 class CreateBooking extends CreateRecord
 {
@@ -16,7 +17,9 @@ class CreateBooking extends CreateRecord
 
         $quotationId = request()->query('quotation_id');
 
-        if ($quotationId && $quotation = Quotation::find($quotationId)) {
+        if ($quotationId && $quotation = Quotation::query()->accepted()->valid()->find($quotationId)) {
+            abort_unless(auth()->user()->can('view', $quotation), 403);
+
             $this->form->fill([
                 'quotation_id' => $quotation->id,
                 'enquiry_id' => $quotation->enquiry_id,
@@ -35,6 +38,35 @@ class CreateBooking extends CreateRecord
                 'assigned_to' => auth()->id(),
             ]);
         }
+    }
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        if (!empty($data['quotation_id'])) {
+            $quotation = Quotation::query()
+                ->accepted()
+                ->valid()
+                ->find($data['quotation_id']);
+
+            if (!$quotation || $quotation->bookings()->exists()) {
+                throw ValidationException::withMessages([
+                    'data.quotation_id' => 'The quotation is not eligible or already has a booking.',
+                ]);
+            }
+
+            $data['enquiry_id'] = $quotation->enquiry_id;
+            $data['client_name'] = $quotation->client_name;
+            $data['client_email'] = $quotation->client_email;
+            $data['client_phone'] = $quotation->client_phone;
+            $data['total_amount'] = $quotation->total_amount;
+            $data['currency'] = $quotation->currency;
+        }
+
+        $data['paid_amount'] = 0;
+        $data['balance_amount'] = $data['total_amount'] ?? 0;
+        $data['status'] = 'confirmed';
+
+        return $data;
     }
 
     protected function getRedirectUrl(): string

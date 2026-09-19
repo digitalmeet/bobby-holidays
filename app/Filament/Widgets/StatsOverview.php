@@ -18,6 +18,11 @@ class StatsOverview extends StatsOverviewWidget
 
     protected string|null $pollingInterval = '120s';
 
+    public static function canView(): bool
+    {
+        return auth()->user()?->hasAnyRole(['super_admin', 'sales', 'operations']) ?? false;
+    }
+
     protected function getStats(): array
     {
         $stats = Cache::remember('dashboard_stats', 60, function () {

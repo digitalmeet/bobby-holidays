@@ -97,7 +97,6 @@ class BookingForm
 
                                 Section::make('Linked Records')
                                     ->columns(2)
-                                    ->collapsed()
                                     ->schema([
                                         Select::make('quotation_id')
                                             ->label('From Quotation')
@@ -149,7 +148,6 @@ class BookingForm
 
                                 Section::make('GST Details')
                                     ->columns(2)
-                                    ->collapsed()
                                     ->schema([
                                         TextInput::make('gst_number')
                                             ->label('GST Number')

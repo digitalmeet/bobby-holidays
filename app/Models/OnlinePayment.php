@@ -43,6 +43,16 @@ class OnlinePayment extends Model
         return $this->belongsTo(Quotation::class);
     }
 
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
+    }
+
+    public function activityLogHiddenAttributes(): array
+    {
+        return ['signature', 'gateway_response'];
+    }
+
     public function scopeCaptured($query)
     {
         return $query->where('status', 'captured');

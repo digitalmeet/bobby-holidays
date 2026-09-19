@@ -62,10 +62,7 @@
             },
             body: JSON.stringify({
                 quotation_id: {{ $quotation->id }},
-                amount: {{ $amount }},
-                client_name: '{{ $quotation->client_name }}',
-                client_email: '{{ $quotation->client_email }}',
-                client_phone: '{{ $quotation->client_phone }}',
+                access_token: @json($quotation->access_token),
             })
         })
         .then(res => res.json())

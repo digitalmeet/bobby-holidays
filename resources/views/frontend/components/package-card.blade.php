@@ -5,7 +5,7 @@
     @endif
 
     {{-- Image with location badge --}}
-    <div style="position:relative;overflow:hidden;">
+    <div class="package-card-media" style="position:relative;overflow:hidden;">
         <img src="{{ str_starts_with($image, 'http') || str_starts_with($image, '/storage') ? $image : asset($image) }}"
              alt="{{ $title }}" loading="lazy" decoding="async" width="400" height="300"
              style="transition:transform 0.4s ease;width:100%;display:block;">

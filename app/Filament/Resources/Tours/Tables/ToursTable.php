@@ -6,13 +6,13 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ReplicateAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
@@ -30,6 +30,7 @@ class ToursTable
             ->columns([
                 ImageColumn::make('hero_image')
                     ->label('')
+                    ->defaultImageUrl(asset('assets/frontend/images/image-placeholder.svg'))
                     ->circular()
                     ->size(40),
                 TextColumn::make('title')
@@ -61,10 +62,9 @@ class ToursTable
                     ->label('Featured')
                     ->boolean()
                     ->toggleable(),
-                IconColumn::make('is_active')
+                ToggleColumn::make('is_active')
                     ->label('Active')
-                    ->boolean()
-                    ->toggleable(),
+                    ->tooltip('Show or hide this tour on the website.'),
                 TextColumn::make('published_at')
                     ->label('Published')
                     ->date()
@@ -122,14 +122,11 @@ class ToursTable
                         $replica->is_active = false;
                         $replica->is_featured = false;
                     }),
-                DeleteAction::make(),
                 RestoreAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
                 ]),
             ]);
     }

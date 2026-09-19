@@ -147,6 +147,32 @@ class Quotation extends Model
         return $this->hasMany(QuotationItem::class);
     }
 
+    public function onlinePayments()
+    {
+        return $this->hasMany(OnlinePayment::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function publicUrl(): string
+    {
+        return route('quotation.public', [
+            'publicId' => $this->public_id,
+            'token' => $this->access_token,
+        ]);
+    }
+
+    public function paymentUrl(): string
+    {
+        return route('payment.page', [
+            'publicId' => $this->public_id,
+            'token' => $this->access_token,
+        ]);
+    }
+
     /**
      * Get all history entries for this quotation.
      */

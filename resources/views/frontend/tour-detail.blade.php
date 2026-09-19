@@ -3,7 +3,7 @@
 @section('title', ($tour->meta_title ?? $tour->title) . ' — UniWorld Holidays')
 @section('meta_description', $tour->meta_description ?? $tour->subtitle ?? '')
 @section('og_image_meta')
-@if($tour->og_image)<meta property="og:image" content="{{ asset('storage/' . $tour->og_image) }}">@endif
+@if($tour->og_image)<meta property="og:image" content="{{ media_url($tour->og_image) }}">@endif
 @endsection
 
 @section('content')
@@ -14,7 +14,7 @@
     @push('head')
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
+        "@@context": "https://schema.org",
         "@type": "TouristTrip",
         "name": "{{ $tour->title }}",
         "description": "{{ str($tour->overview ?? $tour->subtitle ?? '')->stripTags()->limit(200) }}",
@@ -40,7 +40,7 @@
     </script>
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
+        "@@context": "https://schema.org",
         "@type": "BreadcrumbList",
         "itemListElement": [
             {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ url('/') }}"},
@@ -134,8 +134,8 @@
                                 <h3 class="fw-bold mb-4" style="color:#064f68;"><i class="fa-solid fa-images me-2"></i>Photo Gallery</h3>
                                 <div class="tour-gallery-grid">
                                     @foreach($tour->gallery as $index => $image)
-                                        <a href="{{ asset('storage/' . $image) }}" class="glightbox tour-gallery-item {{ $index === 0 ? 'tour-gallery-featured' : '' }}" data-gallery="tour-gallery">
-                                            <img src="{{ asset('storage/' . $image) }}" alt="{{ $tour->title }} photo {{ $index + 1 }}">
+                                        <a href="{{ media_url($image) }}" class="glightbox tour-gallery-item {{ $index === 0 ? 'tour-gallery-featured' : '' }}" data-gallery="tour-gallery">
+                                            <img src="{{ media_url($image) }}" alt="{{ $tour->title }} photo {{ $index + 1 }}">
                                         </a>
                                     @endforeach
                                 </div>
@@ -349,20 +349,26 @@
 
     {{-- Related Tours --}}
     @if($relatedTours->count())
-        <section class="section-padding bg-soft">
+        <section class="section-padding bg-soft related-discovery-section">
             <div class="container">
-                @include('frontend.components.section-heading', ['kicker' => 'Similar Packages', 'title' => 'You may also like', 'text' => ''])
-                <div class="row g-4">
+                @include('frontend.components.section-heading', [
+                    'kicker' => 'People also explore',
+                    'title' => 'More holidays worth discovering',
+                    'text' => 'Compare larger, easier-to-scan recommendations selected by destination and travel style.',
+                ])
+                @include('frontend.components.explore-links')
+                <div class="row g-4 equal-card-grid equal-card-grid--3 related-tour-grid">
                     @foreach($relatedTours as $related)
-                        <div class="col-lg-3 col-md-6">
+                        <div class="col-lg-4 col-md-6">
                             @include('frontend.components.package-card', [
-                                'image' => $related->hero_image ? asset('storage/' . $related->hero_image) : asset('assets/frontend/images/destination-kashmir.svg'),
+                                'image' => media_url($related->hero_image, 'assets/frontend/images/demo/destination-kashmir.webp'),
                                 'title' => $related->title,
                                 'duration' => $related->duration_nights . 'N / ' . $related->duration_days . 'D',
                                 'type' => ucfirst($related->category ?? 'Tour'),
                                 'description' => $related->subtitle ?? '',
                                 'price' => $related->starting_price ? '₹' . number_format($related->starting_price) : 'On Request',
                                 'url' => route('frontend.tour.show', $related->slug),
+                                'location' => $related->destination?->name,
                             ])
                         </div>
                     @endforeach
@@ -406,7 +412,11 @@
         .tour-gallery-item:hover img { transform: scale(1.05); }
         @media (max-width: 767px) { .tour-gallery-grid { grid-template-columns: repeat(2, 1fr); } .tour-gallery-featured { grid-row: span 1; aspect-ratio: 4/3; } }
         @media (max-width: 575px) { .tour-gallery-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 991px) { body { padding-bottom: 72px; } }
+        @media (max-width: 991px) {
+            body { padding-bottom: 72px; }
+            .floating-quote-btn { display: none !important; }
+            .go-top-btn { bottom: 86px; }
+        }
     </style>
     @endpush
 

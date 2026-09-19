@@ -1,6 +1,6 @@
-<section class="search-panel">
+<section id="holiday-search" class="search-panel">
     <div class="container">
-        <form class="search-box" action="{{ route('frontend.contact') }}" method="get" data-aos="fade-up">
+        <form class="search-box" action="{{ route('frontend.contact') }}" method="get" data-animate="fade-up">
             <div class="row g-3 align-items-end">
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label" for="destination">Destination</label>
@@ -20,24 +20,24 @@
                 </div>
                 <div class="col-lg-2 col-md-6">
                     <label class="form-label" for="guests">Guests</label>
-                    <select class="form-select" id="guests" name="guests">
-                        <option>2 Guests</option>
-                        <option>3 Guests</option>
-                        <option>4 Guests</option>
-                        <option>5+ Guests</option>
+                    <select class="form-select" id="guests" name="adults">
+                        <option value="2">2 Guests</option>
+                        <option value="3">3 Guests</option>
+                        <option value="4">4 Guests</option>
+                        <option value="5">5+ Guests</option>
                     </select>
                 </div>
                 <div class="col-lg-2 col-md-6">
                     <label class="form-label" for="budget">Budget</label>
-                    <select class="form-select" id="budget" name="budget">
-                        <option>Any Budget</option>
-                        <option>Under 50k</option>
-                        <option>50k - 1L</option>
-                        <option>1L+</option>
+                    <select class="form-select" id="budget" name="budget_range">
+                        <option value="">Any Budget</option>
+                        <option value="Under ₹50,000">Under 50k</option>
+                        <option value="₹50,000 - ₹1,00,000">50k - 1L</option>
+                        <option value="Above ₹1,00,000">1L+</option>
                     </select>
                 </div>
                 <div class="col-lg-2">
-                    <button class="btn-brand btn-accent w-100" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+                    <button class="btn-brand btn-accent w-100" type="submit"><i class="fa-solid fa-wand-magic-sparkles"></i> Plan My Trip</button>
                 </div>
             </div>
         </form>

@@ -1,6 +1,7 @@
 @extends('frontend.layouts.app')
 
-@section('title', 'Privacy Policy - UniWorld Holidays')
+@section('title', 'Privacy Policy | UniWorld Holidays')
+@section('meta_description', 'Learn how UniWorld Holidays collects, uses, safeguards and shares personal information provided for travel enquiries and bookings.')
 
 @section('content')
     <div id="reading-progress"></div>

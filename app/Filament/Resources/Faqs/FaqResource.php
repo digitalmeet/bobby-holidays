@@ -17,6 +17,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -66,7 +67,7 @@ class FaqResource extends Resource
         return $table->defaultSort('sort_order')->reorderable('sort_order')->columns([
             TextColumn::make('question')->searchable()->sortable()->limit(60),
             TextColumn::make('category')->badge()->color('gray'),
-            IconColumn::make('is_active')->boolean(),
+            ToggleColumn::make('is_active')->label('Active')->tooltip('Show or hide this FAQ on the website.'),
             TextColumn::make('sort_order')->numeric()->sortable(),
         ])->filters([
             TernaryFilter::make('is_active'),

@@ -7,11 +7,8 @@ use App\Models\Enquiry;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\RestoreAction;
-use Filament\Actions\RestoreBulkAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -45,6 +42,10 @@ class EnquiriesTable
                     ->date('d M Y')
                     ->sortable()
                     ->placeholder('Flexible'),
+                TextColumn::make('budget_range')
+                    ->label('Budget')
+                    ->placeholder('—')
+                    ->toggleable(),
                 TextColumn::make('adults')
                     ->label('Pax')
                     ->formatStateUsing(fn (Enquiry $record) => "{$record->adults}A" .
@@ -110,6 +111,14 @@ class EnquiriesTable
                 Filter::make('unassigned')
                     ->label('Unassigned Only')
                     ->query(fn (Builder $query) => $query->whereNull('assigned_to')),
+                Filter::make('budget')
+                    ->form([
+                        TextInput::make('minimum')->label('Budget from (₹)')->numeric()->minValue(0),
+                        TextInput::make('maximum')->label('Budget to (₹)')->numeric()->minValue(0),
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when($data['minimum'] ?? null, fn (Builder $query, $minimum) => $query->where('budget_max', '>=', $minimum))
+                        ->when($data['maximum'] ?? null, fn (Builder $query, $maximum) => $query->where('budget_min', '<=', $maximum))),
                 TrashedFilter::make(),
             ])
             ->recordActions([
@@ -138,8 +147,6 @@ class EnquiriesTable
                             'last_contacted_at' => now(),
                         ]);
                     }),
-                DeleteAction::make(),
-                RestoreAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -150,8 +157,6 @@ class EnquiriesTable
                         ->requiresConfirmation()
                         ->deselectRecordsAfterCompletion()
                         ->action(fn (Collection $records) => $records->each->update(['status' => 'lost'])),
-                    DeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
                 ]),
             ]);
     }
